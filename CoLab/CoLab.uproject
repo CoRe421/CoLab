@@ -17,6 +17,14 @@
 			"TargetAllowList": [
 				"Editor"
 			]
+		},
+		{
+			"Name": "Collab",
+			"Enabled": true
+		},
+		{
+			"Name": "Collab",
+			"Enabled": true
 		}
 	]
 }

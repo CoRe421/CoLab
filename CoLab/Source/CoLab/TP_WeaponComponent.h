@@ -4,12 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Weapons/CoLabWeaponInterface.h"
 #include "TP_WeaponComponent.generated.h"
 
 class ACoLabCharacter;
 
 UCLASS(Blueprintable, BlueprintType, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class COLAB_API UTP_WeaponComponent : public USkeletalMeshComponent
+class COLAB_API UTP_WeaponComponent : public USkeletalMeshComponent, public ICoLabWeaponInterface
 {
 	GENERATED_BODY()
 
@@ -38,6 +39,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	class UInputAction* FireAction;
 
+protected:
+	UPROPERTY()
+	TObjectPtr<ACoLabCharacter> AttachedCharacter;
+
 	/** Sets default values for this component's properties */
 	UTP_WeaponComponent();
 
@@ -46,15 +51,17 @@ public:
 	bool AttachWeapon(ACoLabCharacter* TargetCharacter);
 
 	/** Make the weapon Fire a Projectile */
-	UFUNCTION(BlueprintCallable, Category="Weapon")
-	void Fire();
+	virtual void Fire_Implementation() override;
 
 protected:
 	/** Ends gameplay for this component. */
 	UFUNCTION()
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-private:
-	/** The Character holding this weapon*/
-	ACoLabCharacter* Character;
+	virtual void OnRegister() override;
+
+	UFUNCTION(Server, Reliable)
+	void SVR_PlayFireSound();
+	UFUNCTION(NetMulticast, Reliable)
+	void MUL_PlayFireSound();
 };

@@ -60,6 +60,9 @@ void ACoLabCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACoLabCharacter::Look);
+
+		// Looking
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &ACoLabCharacter::TryFire);
 	}
 	else
 	{
@@ -92,4 +95,8 @@ void ACoLabCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void ACoLabCharacter::TryFire_Implementation(const FInputActionValue& Value)
+{
 }

@@ -41,3 +41,8 @@ void ACoLabProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, U
 		Destroy();
 	}
 }
+
+void ACoLabProjectile::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+}

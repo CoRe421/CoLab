@@ -48,6 +48,10 @@ public:
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
+	
+	/** Look Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* FireAction;
 
 protected:
 	/** Called for movement input */
@@ -55,6 +59,11 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+
+	/** Called for looking input */
+	UFUNCTION(BlueprintNativeEvent)
+	void TryFire(const FInputActionValue& Value);
+	void TryFire_Implementation(const FInputActionValue& Value);
 
 protected:
 	// APawn interface

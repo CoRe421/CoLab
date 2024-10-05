@@ -5,10 +5,13 @@
 
 #include "CollabLog.h"
 #include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
+#include "Character/CollabPawnData.h"
+#include "Net/UnrealNetwork.h"
 
 
 // Sets default values for this component's properties
-UCollabPawnExtensionComponent::UCollabPawnExtensionComponent()
+UCollabPawnExtensionComponent::UCollabPawnExtensionComponent(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -27,6 +30,18 @@ void UCollabPawnExtensionComponent::BeginPlay()
 	
 }
 
+void UCollabPawnExtensionComponent::OnRep_PawnData()
+{
+	// CheckDefaultInitialization();
+}
+
+void UCollabPawnExtensionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, PawnData);
+}
+
 
 // Called every frame
 void UCollabPawnExtensionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -35,6 +50,30 @@ void UCollabPawnExtensionComponent::TickComponent(float DeltaTime, ELevelTick Ti
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+void UCollabPawnExtensionComponent::SetPawnData(const UCollabPawnData* InPawnData)
+{
+	check(InPawnData);
+
+	APawn* Pawn = GetPawnChecked<APawn>();
+
+	if (Pawn->GetLocalRole() != ROLE_Authority)
+	{
+		return;
+	}
+
+	if (PawnData)
+	{
+		UE_LOG(LogCollab, Error, TEXT("Trying to set PawnData [%s] on pawn [%s] that already has valid PawnData [%s]."), *GetNameSafe(InPawnData), *GetNameSafe(Pawn), *GetNameSafe(PawnData));
+		return;
+	}
+
+	PawnData = InPawnData;
+
+	Pawn->ForceNetUpdate();
+
+	// CheckDefaultInitialization();
 }
 
 void UCollabPawnExtensionComponent::InitializeAbilitySystem(UCollabAbilitySystemComponent* InASC, AActor* InOwnerActor)

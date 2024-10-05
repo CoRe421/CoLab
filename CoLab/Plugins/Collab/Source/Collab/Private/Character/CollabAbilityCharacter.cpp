@@ -23,8 +23,6 @@ void ACollabAbilityCharacter::BeginPlay()
 	if (IsValid(CharacterASC))
 	{
 		CharacterASC->InitAbilityActorInfo(this, this);
-		GiveDefaultAbilities();
-		InitDefaultAttributes();
 	}
 }
 

@@ -4,6 +4,7 @@
 #include "Character/CollabPlayerCharacter.h"
 
 #include "Character/CollabPawnExtensionComponent.h"
+#include "Player/CollabPlayerController.h"
 #include "Player/CollabPlayerState.h"
 
 
@@ -25,7 +26,6 @@ void ACollabPlayerCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 	
 	InitAbilitySystemComponent();
-	InitDefaultAttributes();
 }
 
 void ACollabPlayerCharacter::OnRep_PlayerState()
@@ -33,7 +33,6 @@ void ACollabPlayerCharacter::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 	
 	InitAbilitySystemComponent();
-	InitDefaultAttributes();
 }
 
 // Called every frame
@@ -56,7 +55,6 @@ void ACollabPlayerCharacter::InitAbilitySystemComponent()
 		return;
 	} 
 	
-
 	if (UCollabPawnExtensionComponent* PawnExtComp = UCollabPawnExtensionComponent::FindPawnExtensionComponent(this))
 	{
 		// The player state holds the persistent data for this player (state that persists across deaths and multiple pawns).

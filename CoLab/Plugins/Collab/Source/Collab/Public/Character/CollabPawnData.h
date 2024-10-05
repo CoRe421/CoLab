@@ -26,7 +26,7 @@ public:
 
 public:
 
-	// Class to instantiate for this pawn (should usually derive from ALyraPawn or ALyraCharacter).
+	// Class to instantiate for this pawn (should usually derive from ACollabPawn or ACollabCharacter).
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Pawn")
 	TSubclassOf<ACollabPlayerCharacter> PawnClass;
 
@@ -39,9 +39,10 @@ public:
 	// TObjectPtr<UCollabAbilityTagRelationshipMapping> TagRelationshipMapping;
 
 	// Input configuration used by player controlled pawns to create input mappings and bind input actions.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Input")
-	TObjectPtr<UCollabInputConfig> InputConfig;
+	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Input")
+	// TObjectPtr<UCollabInputConfig> InputConfig;
 
 	// // Default camera mode used by player controlled pawns.
 	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Camera")
 	// TSubclassOf<UCollabCameraMode> DefaultCameraMode;
+};

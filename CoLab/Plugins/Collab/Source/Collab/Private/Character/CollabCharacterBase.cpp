@@ -20,49 +20,6 @@ void ACollabCharacterBase::BeginPlay()
 	Super::BeginPlay();
 }
 
-void ACollabCharacterBase::GiveDefaultAbilities()
-{
-	if (!ensureAlways(AbilitySystemComponent.IsValid() || !HasAuthority()))
-	{
-		return;
-	}
-
-	for (const TSoftClassPtr<UGameplayAbility>& AbilityClass : DefaultAbilities)
-	{
-		UClass* LoadedAbilityClass = AbilityClass.LoadSynchronous();
-		if (!ensure(IsValid(LoadedAbilityClass) && LoadedAbilityClass->IsChildOf(UGameplayAbility::StaticClass())))
-		{
-			return;
-		}
-
-		const FGameplayAbilitySpec AbilitySpec(LoadedAbilityClass, 1);
-		AbilitySystemComponent->GiveAbility(AbilitySpec);
-	}
-}
-
-void ACollabCharacterBase::InitDefaultAttributes()
-{
-	if (!AbilitySystemComponent.IsValid())
-	{
-		return;
-	}
-	UClass* EffectClass = DefaultAttributeEffect.LoadSynchronous();
-	if (!IsValid(EffectClass) || !IsValid(EffectClass->GetDefaultObject<UGameplayEffect>()))
-	{
-		return;
-	}
-
-	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
-	EffectContext.AddSourceObject(this);
-
-	const FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(EffectClass, 1.f, EffectContext);
-
-	if (SpecHandle.IsValid())
-	{
-		AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-	}
-}
-
 // Called every frame
 void ACollabCharacterBase::Tick(float DeltaTime)
 {

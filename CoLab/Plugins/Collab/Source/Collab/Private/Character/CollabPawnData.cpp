@@ -2,3 +2,10 @@
 
 
 #include "Character/CollabPawnData.h"
+
+UCollabPawnData::UCollabPawnData(const FObjectInitializer& ObjectInitializer)
+{
+	PawnClass = nullptr;
+	// InputConfig = nullptr;
+	// DefaultCameraMode = nullptr;
+}

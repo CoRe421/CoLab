@@ -8,10 +8,4 @@
 void ACollabPlayerController::AcknowledgePossession(APawn* NewPawn)
 {
 	Super::AcknowledgePossession(NewPawn);
-	
-	ACollabCharacterBase* CollabCharacter = Cast<ACollabCharacterBase>(NewPawn);
-	if (IsValid(CollabCharacter))
-	{
-		CollabCharacter->GetAbilitySystemComponent()->InitAbilityActorInfo(CollabCharacter, CollabCharacter);
-	}
 }

@@ -73,11 +73,11 @@ UCollabAbilitySet::UCollabAbilitySet(const FObjectInitializer& ObjectInitializer
 {
 }
 
-void UCollabAbilitySet::GiveToAbilitySystem(UCollabAbilitySystemComponent* LyraASC, FCollabAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject) const
+void UCollabAbilitySet::GiveToAbilitySystem(UCollabAbilitySystemComponent* CollabASC, FCollabAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject) const
 {
-	check(LyraASC);
+	check(CollabASC);
 
-	if (!LyraASC->IsOwnerActorAuthoritative())
+	if (!CollabASC->IsOwnerActorAuthoritative())
 	{
 		// Must be authoritative to give or take ability sets.
 		return;
@@ -100,7 +100,7 @@ void UCollabAbilitySet::GiveToAbilitySystem(UCollabAbilitySystemComponent* LyraA
 		AbilitySpec.SourceObject = SourceObject;
 		AbilitySpec.DynamicAbilityTags.AddTag(AbilityToGrant.InputTag);
 
-		const FGameplayAbilitySpecHandle AbilitySpecHandle = LyraASC->GiveAbility(AbilitySpec);
+		const FGameplayAbilitySpecHandle AbilitySpecHandle = CollabASC->GiveAbility(AbilitySpec);
 
 		if (OutGrantedHandles)
 		{
@@ -120,7 +120,7 @@ void UCollabAbilitySet::GiveToAbilitySystem(UCollabAbilitySystemComponent* LyraA
 		}
 
 		const UGameplayEffect* GameplayEffect = EffectToGrant.GameplayEffect->GetDefaultObject<UGameplayEffect>();
-		const FActiveGameplayEffectHandle GameplayEffectHandle = LyraASC->ApplyGameplayEffectToSelf(GameplayEffect, EffectToGrant.EffectLevel, LyraASC->MakeEffectContext());
+		const FActiveGameplayEffectHandle GameplayEffectHandle = CollabASC->ApplyGameplayEffectToSelf(GameplayEffect, EffectToGrant.EffectLevel, CollabASC->MakeEffectContext());
 
 		if (OutGrantedHandles)
 		{
@@ -139,8 +139,8 @@ void UCollabAbilitySet::GiveToAbilitySystem(UCollabAbilitySystemComponent* LyraA
 			continue;
 		}
 
-		UAttributeSet* NewSet = NewObject<UAttributeSet>(LyraASC->GetOwner(), SetToGrant.AttributeSet);
-		LyraASC->AddAttributeSetSubobject(NewSet);
+		UAttributeSet* NewSet = NewObject<UAttributeSet>(CollabASC->GetOwner(), SetToGrant.AttributeSet);
+		CollabASC->AddAttributeSetSubobject(NewSet);
 
 		if (OutGrantedHandles)
 		{

@@ -8,6 +8,7 @@
 #include "GameplayAbilitySystem/Attributes/CollabAttributeSetBase.h"
 #include "CollabPlayerState.generated.h"
 
+class UCollabPawnData;
 class UCollabGameplayEffect;
 class UCollabGameplayAbility;
 class UCollabAbilitySystemComponent;
@@ -21,6 +22,7 @@ class COLLAB_API ACollabPlayerState : public APlayerState, public IAbilitySystem
 {
 	GENERATED_BODY()
 
+protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
 	TObjectPtr<UCollabAbilitySystemComponent> AbilitySystemComponent;
 	
@@ -37,14 +39,24 @@ class COLLAB_API ACollabPlayerState : public APlayerState, public IAbilitySystem
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
 	TSoftClassPtr<UCollabGameplayEffect> DefaultAttributeEffect;
 
-protected:
-	
+	// Given from the GameMode - CR
+	UPROPERTY(ReplicatedUsing = OnRep_PawnData)
+	TObjectPtr<const UCollabPawnData> PawnData;
 
 public:
 	ACollabPlayerState();
 
-	UFUNCTION(BlueprintCallable, Category = "Lyra|PlayerState")
+	UFUNCTION(BlueprintCallable, Category = "Collab|PlayerState")
 	UCollabAbilitySystemComponent* GetCollabAbilitySystemComponent() const { return AbilitySystemComponent; }
 	UFUNCTION(BlueprintCallable)
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
+	template <class T>
+	const T* GetPawnData() const { return Cast<T>(PawnData); }
+
+	void SetPawnData(const UCollabPawnData* InPawnData);
+
+protected:
+	UFUNCTION()
+	void OnRep_PawnData();
 };

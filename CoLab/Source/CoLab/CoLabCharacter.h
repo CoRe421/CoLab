@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Character/CollabCharacterBase.h"
+#include "Character/CollabPlayerCharacter.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "CoLabCharacter.generated.h"
@@ -17,7 +19,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class ACoLabCharacter : public ACharacter
+class ACoLabCharacter : public ACollabPlayerCharacter
 {
 	GENERATED_BODY()
 

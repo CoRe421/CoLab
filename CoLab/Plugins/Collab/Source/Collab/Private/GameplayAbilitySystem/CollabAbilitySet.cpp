@@ -83,6 +83,26 @@ void UCollabAbilitySet::GiveToAbilitySystem(UCollabAbilitySystemComponent* Colla
 		return;
 	}
 
+	// Grant the attribute sets.
+	for (int32 SetIndex = 0; SetIndex < GrantedAttributes.Num(); ++SetIndex)
+	{
+		const FCollabAbilitySet_AttributeSet& SetToGrant = GrantedAttributes[SetIndex];
+
+		if (!IsValid(SetToGrant.AttributeSet))
+		{
+			UE_LOG(LogCollab, Error, TEXT("GrantedAttributes[%d] on ability set [%s] is not valid"), SetIndex, *GetNameSafe(this));
+			continue;
+		}
+
+		UAttributeSet* NewSet = NewObject<UAttributeSet>(CollabASC->GetOwner(), SetToGrant.AttributeSet);
+		CollabASC->AddAttributeSetSubobject(NewSet);
+
+		if (OutGrantedHandles)
+		{
+			OutGrantedHandles->AddAttributeSet(NewSet);
+		}
+	}
+
 	// Grant the gameplay abilities.
 	for (int32 AbilityIndex = 0; AbilityIndex < GrantedGameplayAbilities.Num(); ++AbilityIndex)
 	{
@@ -125,26 +145,6 @@ void UCollabAbilitySet::GiveToAbilitySystem(UCollabAbilitySystemComponent* Colla
 		if (OutGrantedHandles)
 		{
 			OutGrantedHandles->AddGameplayEffectHandle(GameplayEffectHandle);
-		}
-	}
-
-	// Grant the attribute sets.
-	for (int32 SetIndex = 0; SetIndex < GrantedAttributes.Num(); ++SetIndex)
-	{
-		const FCollabAbilitySet_AttributeSet& SetToGrant = GrantedAttributes[SetIndex];
-
-		if (!IsValid(SetToGrant.AttributeSet))
-		{
-			UE_LOG(LogCollab, Error, TEXT("GrantedAttributes[%d] on ability set [%s] is not valid"), SetIndex, *GetNameSafe(this));
-			continue;
-		}
-
-		UAttributeSet* NewSet = NewObject<UAttributeSet>(CollabASC->GetOwner(), SetToGrant.AttributeSet);
-		CollabASC->AddAttributeSetSubobject(NewSet);
-
-		if (OutGrantedHandles)
-		{
-			OutGrantedHandles->AddAttributeSet(NewSet);
 		}
 	}
 }

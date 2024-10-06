@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Player/CollabPlayerController.h"
 #include "CoLabPlayerController.generated.h"
 
 class UInputMappingContext;
@@ -12,7 +13,7 @@ class UInputMappingContext;
  *
  */
 UCLASS()
-class COLAB_API ACoLabPlayerController : public APlayerController
+class COLAB_API ACoLabPlayerController : public ACollabPlayerController
 {
 	GENERATED_BODY()
 	

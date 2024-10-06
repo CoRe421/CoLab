@@ -5,6 +5,7 @@
 
 #include "CollabLog.h"
 #include "Character/CollabPawnData.h"
+#include "GameModes/CollabGameMode.h"
 #include "GameplayAbilitySystem/CollabAbilitySet.h"
 #include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
 #include "GameplayAbilitySystem/Attributes/CollabHealthAttributeSet.h"
@@ -19,6 +20,26 @@ ACollabPlayerState::ACollabPlayerState()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 	
 	HealthAttributeSet = CreateDefaultSubobject<UCollabHealthAttributeSet>("HealthAttributeSet");
+}
+
+void ACollabPlayerState::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	check(IsValid(AbilitySystemComponent));
+	AbilitySystemComponent->InitAbilityActorInfo(this, GetPawn());
+	
+	if (ACollabGameMode* CollabGameMode = GetWorld()->GetAuthGameMode<ACollabGameMode>())
+	{
+		if (const UCollabPawnData* NewPawnData = CollabGameMode->GetPawnDataForController(GetOwningController()))
+		{
+			SetPawnData(NewPawnData);
+		}
+		else
+		{
+			UE_LOG(LogCollab, Error, TEXT("ACollabPlayerState::PostInitializeComponents(): Unable to find PawnData to initialize player state [%s]!"), *GetNameSafe(this));
+		}
+	}
 }
 
 UAbilitySystemComponent* ACollabPlayerState::GetAbilitySystemComponent() const

@@ -11,9 +11,9 @@ void UCollabSpellcastAttributeSet::OnRep_MaxMana(const FGameplayAttributeData& O
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabSpellcastAttributeSet, MaxMana, OldMaxMana);
 }
 
-void UCollabSpellcastAttributeSet::OnRep_CurrentMana(const FGameplayAttributeData& OldCurrentMana)
+void UCollabSpellcastAttributeSet::OnRep_Mana(const FGameplayAttributeData& OldMana)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabSpellcastAttributeSet, CurrentMana, OldCurrentMana);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabSpellcastAttributeSet, Mana, OldMana);
 }
 
 void UCollabSpellcastAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -21,5 +21,5 @@ void UCollabSpellcastAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabSpellcastAttributeSet, MaxMana, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UCollabSpellcastAttributeSet, CurrentMana, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UCollabSpellcastAttributeSet, Mana, COND_None, REPNOTIFY_Always);
 }

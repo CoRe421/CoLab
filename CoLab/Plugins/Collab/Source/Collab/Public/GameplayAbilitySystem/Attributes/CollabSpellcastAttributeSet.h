@@ -18,14 +18,14 @@ class COLLAB_API UCollabSpellcastAttributeSet : public UCollabAttributeSetBase
 	UPROPERTY(BlueprintReadOnly, Category = "Max Mana", ReplicatedUsing = OnRep_MaxMana, meta=(AllowPrivateAccess))
 	FGameplayAttributeData MaxMana;
 	ATTRIBUTE_ACCESSORS(UCollabSpellcastAttributeSet, MaxMana)
-	UPROPERTY(BlueprintReadOnly, Category = "Current Mana", ReplicatedUsing = OnRep_CurrentMana, meta=(AllowPrivateAccess))
-	FGameplayAttributeData CurrentMana;
-	ATTRIBUTE_ACCESSORS(UCollabSpellcastAttributeSet, CurrentMana)
+	UPROPERTY(BlueprintReadOnly, Category = "Mana", ReplicatedUsing = OnRep_Mana, meta=(AllowPrivateAccess))
+	FGameplayAttributeData Mana;
+	ATTRIBUTE_ACCESSORS(UCollabSpellcastAttributeSet, Mana)
 	
 	UFUNCTION()
 	virtual void OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana);
 	UFUNCTION()
-	virtual void OnRep_CurrentMana(const FGameplayAttributeData& OldCurrentMana);
+	virtual void OnRep_Mana(const FGameplayAttributeData& OldMana);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 };

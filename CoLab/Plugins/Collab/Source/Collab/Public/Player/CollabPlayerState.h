@@ -46,6 +46,10 @@ protected:
 public:
 	ACollabPlayerState();
 
+protected:
+	virtual void PostInitializeComponents() override;
+
+public:
 	UFUNCTION(BlueprintCallable, Category = "Collab|PlayerState")
 	UCollabAbilitySystemComponent* GetCollabAbilitySystemComponent() const { return AbilitySystemComponent; }
 	UFUNCTION(BlueprintCallable)

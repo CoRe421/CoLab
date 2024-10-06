@@ -11,9 +11,9 @@ void UCollabHealthAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& Ol
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabHealthAttributeSet, MaxHealth, OldMaxHealth);
 }
 
-void UCollabHealthAttributeSet::OnRep_CurrentHealth(const FGameplayAttributeData& OldCurrentHealth)
+void UCollabHealthAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth)
 {
-	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabHealthAttributeSet, CurrentHealth, OldCurrentHealth);
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabHealthAttributeSet, Health, OldHealth);
 }
 
 void UCollabHealthAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -21,7 +21,7 @@ void UCollabHealthAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabHealthAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UCollabHealthAttributeSet, CurrentHealth, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UCollabHealthAttributeSet, Health, COND_None, REPNOTIFY_Always);
 }
 
 void UCollabHealthAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -41,8 +41,8 @@ void UCollabHealthAttributeSet::PostGameplayEffectExecute(const FGameplayEffectM
 
 		if (LocalDamageDone > 0.0f)
 		{
-			const float NewHealth = GetCurrentHealth() - LocalDamageDone;
-			SetCurrentHealth(FMath::Clamp(NewHealth, 0.0f, GetMaxHealth()));
+			const float NewHealth = GetHealth() - LocalDamageDone;
+			SetHealth(FMath::Clamp(NewHealth, 0.0f, GetMaxHealth()));
 		}
 	}
 
@@ -51,7 +51,7 @@ void UCollabHealthAttributeSet::PostGameplayEffectExecute(const FGameplayEffectM
 
 void UCollabHealthAttributeSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const
 {
-	if (Attribute == GetCurrentHealthAttribute())
+	if (Attribute == GetHealthAttribute())
 	{
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHealth());
 	}

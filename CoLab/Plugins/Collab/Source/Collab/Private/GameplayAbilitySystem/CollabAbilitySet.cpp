@@ -140,7 +140,11 @@ void UCollabAbilitySet::GiveToAbilitySystem(UCollabAbilitySystemComponent* Colla
 		}
 
 		const UGameplayEffect* GameplayEffect = EffectToGrant.GameplayEffect->GetDefaultObject<UGameplayEffect>();
-		const FActiveGameplayEffectHandle GameplayEffectHandle = CollabASC->ApplyGameplayEffectToSelf(GameplayEffect, EffectToGrant.EffectLevel, CollabASC->MakeEffectContext());
+		const FGameplayEffectContextHandle EffectContext = CollabASC->MakeEffectContext();
+		const FPredictionKey NewPredictionKey = FPredictionKey();
+		bool HasAuthority = NewPredictionKey.IsValidForMorePrediction();
+		CollabASC->GameplayEffectApplicationQueries;
+		const FActiveGameplayEffectHandle GameplayEffectHandle = CollabASC->ApplyGameplayEffectToSelf(GameplayEffect, EffectToGrant.EffectLevel, EffectContext);
 
 		if (OutGrantedHandles)
 		{

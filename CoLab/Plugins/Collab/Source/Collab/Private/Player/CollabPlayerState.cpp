@@ -69,7 +69,7 @@ void ACollabPlayerState::SetPawnData(const UCollabPawnData* InPawnData)
 	{
 		if (AbilitySet)
 		{
-			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr);
+			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr, this);
 		}
 	}
 	

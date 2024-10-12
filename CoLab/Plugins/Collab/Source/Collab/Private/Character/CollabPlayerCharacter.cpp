@@ -24,8 +24,11 @@ void ACollabPlayerCharacter::BeginPlay()
 void ACollabPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-	
-	InitAbilitySystemComponent();
+
+	if (HasAuthority())
+	{
+		InitAbilitySystemComponent();
+	}
 }
 
 void ACollabPlayerCharacter::OnRep_PlayerState()
@@ -59,6 +62,7 @@ void ACollabPlayerCharacter::InitAbilitySystemComponent()
 	{
 		// The player state holds the persistent data for this player (state that persists across deaths and multiple pawns).
 		// The ability system component and attribute sets live on the player state.
-		PawnExtComp->InitializeAbilitySystem(CollabPlayerState->GetCollabAbilitySystemComponent(), CollabPlayerState);
+		UCollabAbilitySystemComponent* PlayerStateASC = CollabPlayerState->GetCollabAbilitySystemComponent();
+		PawnExtComp->InitializeAbilitySystem(PlayerStateASC, CollabPlayerState);
 	}
 }

@@ -65,11 +65,14 @@ void ACollabPlayerState::SetPawnData(const UCollabPawnData* InPawnData)
 	MARK_PROPERTY_DIRTY_FROM_NAME(ThisClass, PawnData, this);
 	PawnData = InPawnData;
 
-	for (const UCollabAbilitySet* AbilitySet : PawnData->AbilitySets)
+	if (HasAuthority())
 	{
-		if (AbilitySet)
+		for (const UCollabAbilitySet* AbilitySet : PawnData->AbilitySets)
 		{
-			AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr, this);
+			if (AbilitySet)
+			{
+				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr, this);
+			}
 		}
 	}
 	

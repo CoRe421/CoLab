@@ -26,7 +26,7 @@ void UCollabAbilitySystemComponent::BeginPlay()
 
 
 // Called every frame
-void UCollabAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickType,
+void UCollabAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
                                                   FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);

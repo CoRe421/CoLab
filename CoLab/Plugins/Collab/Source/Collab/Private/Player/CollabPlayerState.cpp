@@ -17,6 +17,7 @@ ACollabPlayerState::ACollabPlayerState()
 	NetUpdateFrequency = 100.f;
 	
 	AbilitySystemComponent = CreateDefaultSubobject<UCollabAbilitySystemComponent>(TEXT("CollabPlayerStateASC"));
+	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 	
 	HealthAttributeSet = CreateDefaultSubobject<UCollabHealthAttributeSet>("HealthAttributeSet");
@@ -27,7 +28,12 @@ void ACollabPlayerState::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	check(IsValid(AbilitySystemComponent));
-	AbilitySystemComponent->InitAbilityActorInfo(this, GetPawn());
+	AActor* PawnActor = GetPawn();
+	AbilitySystemComponent->InitAbilityActorInfo(this, PawnActor);
+	if (!HasAuthority())
+	{
+		UE_LOG(LogCollab, Log, TEXT("Not Authority!"));
+	}
 	
 	if (ACollabGameMode* CollabGameMode = GetWorld()->GetAuthGameMode<ACollabGameMode>())
 	{

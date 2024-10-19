@@ -3,7 +3,10 @@
 
 #include "Character/CollabPlayerCharacter.h"
 
+#include "CollabLog.h"
 #include "Character/CollabPawnExtensionComponent.h"
+#include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
+#include "Kismet/KismetStringLibrary.h"
 #include "Player/CollabPlayerController.h"
 #include "Player/CollabPlayerState.h"
 
@@ -50,19 +53,55 @@ void ACollabPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+void ACollabPlayerCharacter::LogNames()
+{
+	ACollabPlayerState* CollabPlayerState = GetPlayerState<ACollabPlayerState>();
+	if (!IsValid(CollabPlayerState))
+	{
+		return;
+	}
+	
+	UE_LOG(LogCollab, Warning, TEXT("Char '%s', PS '%s', PC '%s', ASC '%s', Auth '%s'"), *GetName(), *CollabPlayerState->GetName(), GetLocalViewingPlayerController() ? *FString::FromInt(GetLocalViewingPlayerController()->NetPlayerIndex) : TEXT("Null"), *AbilitySystemComponent->GetName(), *UKismetStringLibrary::Conv_BoolToString(HasAuthority()));
+	SVR_LogNames();
+}
+
+void ACollabPlayerCharacter::SVR_LogNames_Implementation()
+{
+	ACollabPlayerState* CollabPlayerState = GetPlayerState<ACollabPlayerState>();
+	if (!IsValid(CollabPlayerState))
+	{
+		return;
+	}
+	
+	UE_LOG(LogCollab, Error, TEXT("Char '%s', PS '%s', PC '%s', ASC '%s', Auth '%s'"), *GetName(), *CollabPlayerState->GetName(), GetLocalViewingPlayerController() ? *FString::FromInt(GetLocalViewingPlayerController()->NetPlayerIndex) : TEXT("Null"), *AbilitySystemComponent->GetName(), *UKismetStringLibrary::Conv_BoolToString(HasAuthority()));
+}
+
 void ACollabPlayerCharacter::InitAbilitySystemComponent()
 {
 	ACollabPlayerState* CollabPlayerState = GetPlayerState<ACollabPlayerState>();
 	if (!IsValid(CollabPlayerState))
 	{
 		return;
-	} 
-	
-	if (UCollabPawnExtensionComponent* PawnExtComp = UCollabPawnExtensionComponent::FindPawnExtensionComponent(this))
+	}
+
+	//UCollabPawnExtensionComponent* PawnExtComp = UCollabPawnExtensionComponent::FindPawnExtensionComponent(this)
+	AbilitySystemComponent = CollabPlayerState->GetCollabAbilitySystemComponent();
+	if (!HasAuthority())
+	{
+		UE_LOG(LogCollab, Log, TEXT("Initializing client ASC"));
+	}
+	if (AbilitySystemComponent.IsValid())
 	{
 		// The player state holds the persistent data for this player (state that persists across deaths and multiple pawns).
 		// The ability system component and attribute sets live on the player state.
-		UCollabAbilitySystemComponent* PlayerStateASC = CollabPlayerState->GetCollabAbilitySystemComponent();
-		PawnExtComp->InitializeAbilitySystem(PlayerStateASC, CollabPlayerState);
+		AbilitySystemComponent->InitAbilityActorInfo(CollabPlayerState, this);
+		UE_LOG(LogCollab, Log, TEXT("Valid PC - Remote: %s"), *UEnum::GetValueAsString(GetRemoteRole()));
+		UE_LOG(LogCollab, Log, TEXT("Valid PC - Local: %s"), *UEnum::GetValueAsString(GetLocalRole()));
+		if (GetLocalViewingPlayerController())
+		{
+			UE_LOG(LogCollab, Log, TEXT("Valid PC - Remote: %s"), *UEnum::GetValueAsString(GetRemoteRole()));
+			UE_LOG(LogCollab, Log, TEXT("Valid PC - Local: %s"), *UEnum::GetValueAsString(GetLocalRole()));
+		}
+		LogNames();
 	}
 }

@@ -87,16 +87,16 @@ void UCollabAbilitySet::GiveToAbilitySystem(UCollabAbilitySystemComponent* Colla
 	for (int32 SetIndex = 0; SetIndex < GrantedAttributes.Num(); ++SetIndex)
 	{
 		const FCollabAbilitySet_AttributeSet& SetToGrant = GrantedAttributes[SetIndex];
-
+	
 		if (!IsValid(SetToGrant.AttributeSet))
 		{
 			UE_LOG(LogCollab, Error, TEXT("GrantedAttributes[%d] on ability set [%s] is not valid"), SetIndex, *GetNameSafe(this));
 			continue;
 		}
-
+	
 		UAttributeSet* NewSet = NewObject<UAttributeSet>(CollabASC->GetOwner(), SetToGrant.AttributeSet);
 		CollabASC->AddAttributeSetSubobject(NewSet);
-
+	
 		if (OutGrantedHandles)
 		{
 			OutGrantedHandles->AddAttributeSet(NewSet);

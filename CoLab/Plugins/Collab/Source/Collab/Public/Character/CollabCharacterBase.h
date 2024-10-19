@@ -5,10 +5,9 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Character.h"
-#include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
-#include "GameplayAbilitySystem/Attributes/CollabAttributeSetBase.h"
 #include "CollabCharacterBase.generated.h"
 
+class UCollabAbilitySystemComponent;
 class UCollabPawnExtensionComponent;
 
 UCLASS(Abstract)
@@ -17,8 +16,11 @@ class COLLAB_API ACollabCharacterBase : public ACharacter, public IAbilitySystem
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UCollabPawnExtensionComponent> PawnExtComponent;
+	TWeakObjectPtr<UCollabAbilitySystemComponent> AbilitySystemComponent;
+
+// protected:
+// 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = "true"))
+// 	TObjectPtr<UCollabPawnExtensionComponent> PawnExtComponent;
 
 public:
 	// Sets default values for this pawn's properties

@@ -3,6 +3,10 @@
 
 #include "Character/CollabAbilityCharacter.h"
 
+#include "CollabLog.h"
+#include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
+#include "GameplayAbilitySystem/Attributes/CollabAttributeSetBase.h"
+
 
 // Sets default values
 ACollabAbilityCharacter::ACollabAbilityCharacter()
@@ -23,6 +27,10 @@ void ACollabAbilityCharacter::BeginPlay()
 	if (IsValid(CharacterASC))
 	{
 		CharacterASC->InitAbilityActorInfo(this, this);
+		if (!HasAuthority())
+		{
+			UE_LOG(LogCollab, Log, TEXT("Not Authority!"));
+		}
 	}
 }
 

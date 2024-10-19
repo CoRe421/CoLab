@@ -114,6 +114,10 @@ void UCollabPawnExtensionComponent::InitializeAbilitySystem(UCollabAbilitySystem
 
 	AbilitySystemComponent = InASC;
 	AbilitySystemComponent->InitAbilityActorInfo(InOwnerActor, Pawn);
+	if (!HasAuthority())
+	{
+		UE_LOG(LogCollab, Log, TEXT("Not Authority!"));
+	}
 }
 
 void UCollabPawnExtensionComponent::UninitializeAbilitySystem()

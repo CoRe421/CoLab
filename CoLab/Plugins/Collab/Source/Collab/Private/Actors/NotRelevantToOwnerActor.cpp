@@ -21,7 +21,8 @@ void ANotRelevantToOwnerActor::BeginPlay()
 bool ANotRelevantToOwnerActor::IsNetRelevantFor(const AActor* RealViewer, const AActor* ViewTarget,
 	const FVector& SrcLocation) const
 {
-	if (ViewTarget == GetOwner())
+	const AActor* CurrentOwner = GetOwner();
+	if (ViewTarget == CurrentOwner)
 	{
 		return false;
 	}

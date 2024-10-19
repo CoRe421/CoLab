@@ -6,6 +6,11 @@
 #include "CollabCharacterBase.h"
 #include "CollabAbilityCharacter.generated.h"
 
+class UGameplayEffect;
+class UGameplayAbility;
+class UCollabAttributeSetBase;
+class UCollabAbilitySystemComponent;
+
 UCLASS()
 class COLLAB_API ACollabAbilityCharacter : public ACollabCharacterBase
 {

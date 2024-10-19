@@ -5,6 +5,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Character/CollabPawnExtensionComponent.h"
 #include "GameplayEffectTypes.h"
+#include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
 
 
 // Sets default values
@@ -13,7 +14,7 @@ ACollabCharacterBase::ACollabCharacterBase()
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
-	PawnExtComponent = CreateDefaultSubobject<UCollabPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
+	// PawnExtComponent = CreateDefaultSubobject<UCollabPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -41,9 +42,5 @@ UCollabAbilitySystemComponent* ACollabCharacterBase::GetCollabAbilitySystemCompo
 
 UAbilitySystemComponent* ACollabCharacterBase::GetAbilitySystemComponent() const
 {
-	if (!IsValid(PawnExtComponent))
-	{
-		return nullptr;
-	}
-	return PawnExtComponent->GetCollabAbilitySystemComponent();
+	return AbilitySystemComponent.Get();
 }

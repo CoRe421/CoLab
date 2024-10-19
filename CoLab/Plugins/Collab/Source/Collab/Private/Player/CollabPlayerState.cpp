@@ -29,11 +29,11 @@ void ACollabPlayerState::PostInitializeComponents()
 
 	check(IsValid(AbilitySystemComponent));
 	AActor* PawnActor = GetPawn();
-	AbilitySystemComponent->InitAbilityActorInfo(this, PawnActor);
-	if (!HasAuthority())
-	{
-		UE_LOG(LogCollab, Log, TEXT("Not Authority!"));
-	}
+	// AbilitySystemComponent->InitAbilityActorInfo(this, PawnActor);
+	// if (!HasAuthority())
+	// {
+	// 	UE_LOG(LogCollab, Log, TEXT("Not Authority!"));
+	// }
 	
 	if (ACollabGameMode* CollabGameMode = GetWorld()->GetAuthGameMode<ACollabGameMode>())
 	{

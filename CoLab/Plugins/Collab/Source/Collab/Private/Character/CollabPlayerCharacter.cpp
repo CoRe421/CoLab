@@ -60,8 +60,10 @@ void ACollabPlayerCharacter::LogNames()
 	{
 		return;
 	}
+	AActor* PlayerStatePawn = CollabPlayerState->GetPawn();
+	UE_LOG(LogCollab, Log, TEXT("Player State Pawn: %s"), *PlayerStatePawn->GetName());
 	
-	UE_LOG(LogCollab, Warning, TEXT("Char '%s', PS '%s', PC '%s', ASC '%s', Auth '%s'"), *GetName(), *CollabPlayerState->GetName(), GetLocalViewingPlayerController() ? *FString::FromInt(GetLocalViewingPlayerController()->NetPlayerIndex) : TEXT("Null"), *AbilitySystemComponent->GetName(), *UKismetStringLibrary::Conv_BoolToString(HasAuthority()));
+	UE_LOG(LogCollab, Warning, TEXT("Char '%s', PS '%s', PC '%s', ASC '%s', Auth '%s'"), *GetName(), *CollabPlayerState->GetName(), GetLocalViewingPlayerController() ? *GetLocalViewingPlayerController()->GetName() : TEXT("Null"), *AbilitySystemComponent->GetOwner()->GetName(), *UKismetStringLibrary::Conv_BoolToString(HasAuthority()));
 	SVR_LogNames();
 }
 
@@ -72,8 +74,10 @@ void ACollabPlayerCharacter::SVR_LogNames_Implementation()
 	{
 		return;
 	}
+	AActor* PlayerStatePawn = CollabPlayerState->GetPawn();
+	UE_LOG(LogCollab, Log, TEXT("Player State Pawn: %s"), *PlayerStatePawn->GetName());
 	
-	UE_LOG(LogCollab, Error, TEXT("Char '%s', PS '%s', PC '%s', ASC '%s', Auth '%s'"), *GetName(), *CollabPlayerState->GetName(), GetLocalViewingPlayerController() ? *FString::FromInt(GetLocalViewingPlayerController()->NetPlayerIndex) : TEXT("Null"), *AbilitySystemComponent->GetName(), *UKismetStringLibrary::Conv_BoolToString(HasAuthority()));
+	UE_LOG(LogCollab, Error, TEXT("Char '%s', PS '%s', PC '%s', ASC '%s', Auth '%s'"), *GetName(), *CollabPlayerState->GetName(), GetLocalViewingPlayerController() ? *GetLocalViewingPlayerController()->GetName() : TEXT("Null"), *AbilitySystemComponent->GetOwner()->GetName(), *UKismetStringLibrary::Conv_BoolToString(HasAuthority()));
 }
 
 void ACollabPlayerCharacter::InitAbilitySystemComponent()
@@ -83,25 +87,30 @@ void ACollabPlayerCharacter::InitAbilitySystemComponent()
 	{
 		return;
 	}
+	if (AbilitySystemComponent.IsValid())
+	{
+		return;
+	}
+	// if (GetLocalRole() == ROLE_SimulatedProxy)
+	// {
+	// 	return;
+	// }
+	// AActor* PlayerStatePawn = CollabPlayerState->GetPawn();
+	// UE_LOG(LogCollab, Log, TEXT("Player State Pawn: %s"), *PlayerStatePawn->GetName());
 
 	//UCollabPawnExtensionComponent* PawnExtComp = UCollabPawnExtensionComponent::FindPawnExtensionComponent(this)
 	AbilitySystemComponent = CollabPlayerState->GetCollabAbilitySystemComponent();
-	if (!HasAuthority())
-	{
-		UE_LOG(LogCollab, Log, TEXT("Initializing client ASC"));
-	}
+	// if (!HasAuthority())
+	// {
+	// 	UE_LOG(LogCollab, Log, TEXT("Initializing client ASC"));
+	// }
 	if (AbilitySystemComponent.IsValid())
 	{
+		UE_LOG(LogCollab, Log, TEXT("Remote: %s"), *UEnum::GetValueAsString(GetRemoteRole()));
+		UE_LOG(LogCollab, Log, TEXT("Local: %s"), *UEnum::GetValueAsString(GetLocalRole()));
+		LogNames();
 		// The player state holds the persistent data for this player (state that persists across deaths and multiple pawns).
 		// The ability system component and attribute sets live on the player state.
 		AbilitySystemComponent->InitAbilityActorInfo(CollabPlayerState, this);
-		UE_LOG(LogCollab, Log, TEXT("Valid PC - Remote: %s"), *UEnum::GetValueAsString(GetRemoteRole()));
-		UE_LOG(LogCollab, Log, TEXT("Valid PC - Local: %s"), *UEnum::GetValueAsString(GetLocalRole()));
-		if (GetLocalViewingPlayerController())
-		{
-			UE_LOG(LogCollab, Log, TEXT("Valid PC - Remote: %s"), *UEnum::GetValueAsString(GetRemoteRole()));
-			UE_LOG(LogCollab, Log, TEXT("Valid PC - Local: %s"), *UEnum::GetValueAsString(GetLocalRole()));
-		}
-		LogNames();
 	}
 }

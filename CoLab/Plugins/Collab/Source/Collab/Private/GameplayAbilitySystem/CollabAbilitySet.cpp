@@ -8,7 +8,7 @@
 #include "GameplayAbilitySpecHandle.h"
 #include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
 #include "GameplayAbilitySystem/Abilities/CollabGameplayAbility.h"
-#include "GameplayAbilitySystem/Attributes/CollabAttributeSetBase.h"
+#include "GameplayAbilitySystem/Attributes/CollabAttributeSet.h"
 #include "GameplayAbilitySystem/Effects/CollabGameplayEffect.h"
 
 void FCollabAbilitySet_GrantedHandles::AddAbilitySpecHandle(const FGameplayAbilitySpecHandle& Handle)
@@ -73,7 +73,7 @@ UCollabAbilitySet::UCollabAbilitySet(const FObjectInitializer& ObjectInitializer
 {
 }
 
-void UCollabAbilitySet::GiveToAbilitySystem(UCollabAbilitySystemComponent* CollabASC, FCollabAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject) const
+void UCollabAbilitySet::GrantToAbilitySystem(UCollabAbilitySystemComponent* CollabASC, FCollabAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject) const
 {
 	check(CollabASC);
 
@@ -126,6 +126,44 @@ void UCollabAbilitySet::GiveToAbilitySystem(UCollabAbilitySystemComponent* Colla
 		{
 			OutGrantedHandles->AddAbilitySpecHandle(AbilitySpecHandle);
 		}
+	}
+
+	// Moved to "ApplyDefaultGameplayEffects" - CR
+	// 
+	// Grant the gameplay effects.
+	// for (int32 EffectIndex = 0; EffectIndex < GrantedGameplayEffects.Num(); ++EffectIndex)
+	// {
+	// 	const FCollabAbilitySet_GameplayEffect& EffectToGrant = GrantedGameplayEffects[EffectIndex];
+	//
+	// 	if (!IsValid(EffectToGrant.GameplayEffect))
+	// 	{
+	// 		UE_LOG(LogCollab, Error, TEXT("GrantedGameplayEffects[%d] on ability set [%s] is not valid"), EffectIndex, *GetNameSafe(this));
+	// 		continue;
+	// 	}
+	//
+	// 	const UGameplayEffect* GameplayEffect = EffectToGrant.GameplayEffect->GetDefaultObject<UGameplayEffect>();
+	// 	const FGameplayEffectContextHandle EffectContext = CollabASC->MakeEffectContext();
+	// 	const FPredictionKey NewPredictionKey = FPredictionKey();
+	// 	bool HasAuthority = NewPredictionKey.IsValidForMorePrediction();
+	// 	CollabASC->GameplayEffectApplicationQueries;
+	// 	const FActiveGameplayEffectHandle GameplayEffectHandle = CollabASC->ApplyGameplayEffectToSelf(GameplayEffect, EffectToGrant.EffectLevel, EffectContext);
+	//
+	// 	if (OutGrantedHandles)
+	// 	{
+	// 		OutGrantedHandles->AddGameplayEffectHandle(GameplayEffectHandle);
+	// 	}
+	// }
+}
+
+void UCollabAbilitySet::ApplyGameplayEffects(UCollabAbilitySystemComponent* CollabASC,
+	FCollabAbilitySet_GrantedHandles* OutGrantedHandles) const
+{
+	check(CollabASC);
+
+	if (!CollabASC->IsOwnerActorAuthoritative())
+	{
+		// Must be authoritative to give or take ability sets.
+		return;
 	}
 
 	// Grant the gameplay effects.

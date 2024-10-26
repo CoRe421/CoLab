@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/PlayerState.h"
-#include "GameplayAbilitySystem/Attributes/CollabAttributeSetBase.h"
+#include "GameplayAbilitySystem/Attributes/CollabAttributeSet.h"
 #include "CollabPlayerState.generated.h"
 
 class UCollabPawnData;
@@ -13,7 +13,6 @@ class UCollabGameplayEffect;
 class UCollabGameplayAbility;
 class UCollabAbilitySystemComponent;
 class UCollabSpellcastAttributeSet;
-class UCollabHealthAttributeSet;
 /**
  * 
  */
@@ -22,22 +21,11 @@ class COLLAB_API ACollabPlayerState : public APlayerState, public IAbilitySystem
 {
 	GENERATED_BODY()
 
+	friend class ACollabPlayerCharacter;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
 	TObjectPtr<UCollabAbilitySystemComponent> AbilitySystemComponent;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
-	TObjectPtr<UCollabHealthAttributeSet> HealthAttributeSet;
-
-	// Should be added in attribute set array
-	// UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
-	// TObjectPtr<UCollabSpellcastAttributeSet> SpellcastAttributeSet;
-
-	UPROPERTY(EditDefaultsOnly, Category="Ability")
-	TArray<TSoftClassPtr<UCollabGameplayAbility>> DefaultAbilities;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
-	TSoftClassPtr<UCollabGameplayEffect> DefaultAttributeEffect;
 
 	// Given from the GameMode - CR
 	UPROPERTY(ReplicatedUsing = OnRep_PawnData)
@@ -59,6 +47,10 @@ public:
 	const T* GetPawnData() const { return Cast<T>(PawnData); }
 
 	void SetPawnData(const UCollabPawnData* InPawnData);
+
+private:
+	// Intended to be called solely by "CollabPlayerCharacter" - CR
+	void ApplyDefaultGameplayEffects();
 
 protected:
 	UFUNCTION()

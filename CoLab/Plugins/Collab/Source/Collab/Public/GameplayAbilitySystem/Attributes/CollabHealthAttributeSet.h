@@ -4,16 +4,32 @@
 
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
-#include "CollabAttributeSetBase.h"
+#include "GameplayAbilitySystem/Attributes/CollabAttributeSet.h"
 #include "CollabHealthAttributeSet.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FDynamicEvent_OnHealthChanged, const float, NewHealth, const float, MaxHealth);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDynamicEvent_OnOutOfHealth);
 
 /**
  * 
  */
 UCLASS(BlueprintType)
-class COLLAB_API UCollabHealthAttributeSet : public UCollabAttributeSetBase
+class COLLAB_API UCollabHealthAttributeSet : public UCollabAttributeSet
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintAssignable, BlueprintReadOnly)
+	mutable FDynamicEvent_OnHealthChanged OnHealthChanged;
+	UPROPERTY(BlueprintAssignable, BlueprintReadOnly)
+	mutable FDynamicEvent_OnOutOfHealth OnOutOfHealth;
+
+private:
+	// Used to track when the health reaches 0.
+	bool bOutOfHealth;
+
+	// Store the health before any changes 
+	float HealthBeforeAttributeChange;
 
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Max Health", ReplicatedUsing = OnRep_MaxHealth, meta=(AllowPrivateAccess))
@@ -37,7 +53,11 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
+	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
+	virtual void SetupBindings_Implementation(UCollabAbilitySystemComponent* AbilitySystemComponent) override;
 
 private:
 	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const;

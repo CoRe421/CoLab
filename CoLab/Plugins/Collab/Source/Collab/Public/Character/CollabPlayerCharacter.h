@@ -23,17 +23,16 @@ protected:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 
+	UFUNCTION(BlueprintNativeEvent)
+	void SetupAbilitySystemComponentBindings();
+	virtual void SetupAbilitySystemComponentBindings_Implementation();
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	UFUNCTION(BlueprintCallable)
-	void LogNames();
-	UFUNCTION(Server, Reliable)
-	void SVR_LogNames();
 
 private:
 	void InitAbilitySystemComponent();

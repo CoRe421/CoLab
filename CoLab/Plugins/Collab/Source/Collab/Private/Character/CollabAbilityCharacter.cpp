@@ -5,7 +5,7 @@
 
 #include "CollabLog.h"
 #include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
-#include "GameplayAbilitySystem/Attributes/CollabAttributeSetBase.h"
+#include "GameplayAbilitySystem/Attributes/CollabAttributeSet.h"
 
 
 // Sets default values
@@ -16,7 +16,7 @@ ACollabAbilityCharacter::ACollabAbilityCharacter()
 	
 	CharacterASC = CreateDefaultSubobject<UCollabAbilitySystemComponent>(TEXT("CollabCharacterASC"));
 	CharacterASC->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
-	CharacterAttributeSet = CreateDefaultSubobject<UCollabAttributeSetBase>("AttributeSet");
+	CharacterAttributeSet = CreateDefaultSubobject<UCollabAttributeSet>("AttributeSet");
 }
 
 // Called when the game starts or when spawned

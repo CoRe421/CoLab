@@ -21,7 +21,6 @@ void UCollabAbilitySystemComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
 }
 
 

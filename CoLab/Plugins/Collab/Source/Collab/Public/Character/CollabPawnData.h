@@ -32,7 +32,7 @@ public:
 
 	// Ability sets to grant to this pawn's ability system.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Abilities")
-	TArray<TObjectPtr<UCollabAbilitySet>> AbilitySets;
+	TArray<TObjectPtr<UCollabAbilitySet>> DefaultAbilitySets;
 
 	// // What mapping of ability tags to use for actions taking by this pawn
 	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Abilities")

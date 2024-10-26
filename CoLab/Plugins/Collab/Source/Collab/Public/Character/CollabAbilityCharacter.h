@@ -8,7 +8,7 @@
 
 class UGameplayEffect;
 class UGameplayAbility;
-class UCollabAttributeSetBase;
+class UCollabAttributeSet;
 class UCollabAbilitySystemComponent;
 
 UCLASS()
@@ -21,7 +21,7 @@ protected:
 	TObjectPtr<UCollabAbilitySystemComponent> CharacterASC;
 	
 	UPROPERTY(EditAnywhere, meta=(AllowPrivateAccess))
-	TObjectPtr<UCollabAttributeSetBase> CharacterAttributeSet;
+	TObjectPtr<UCollabAttributeSet> CharacterAttributeSet;
 
 	UPROPERTY(EditDefaultsOnly, Category="Ability")
 	TArray<TSoftClassPtr<UGameplayAbility>> DefaultAbilities;

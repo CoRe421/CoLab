@@ -14,6 +14,9 @@ void UCollabSpellcastAttributeSet::OnRep_MaxMana(const FGameplayAttributeData& O
 void UCollabSpellcastAttributeSet::OnRep_Mana(const FGameplayAttributeData& OldMana)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabSpellcastAttributeSet, Mana, OldMana);
+
+	const float CurrentMana = GetMana();
+	OnManaChanged.Broadcast(CurrentMana, MaxMana.GetCurrentValue());
 }
 
 void UCollabSpellcastAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -22,4 +25,29 @@ void UCollabSpellcastAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabSpellcastAttributeSet, MaxMana, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabSpellcastAttributeSet, Mana, COND_None, REPNOTIFY_Always);
+}
+
+bool UCollabSpellcastAttributeSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
+{
+	if (!Super::PreGameplayEffectExecute(Data))
+	{
+		return false;
+	}
+	
+	// Save the current health
+	ManaBeforeAttributeChange = GetMana();
+	
+	return true;
+}
+
+void UCollabSpellcastAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+{
+	Super::PostGameplayEffectExecute(Data);
+	
+	// Use this function to trigger in-game reactions to attribute changes
+	const float CurrentMana = GetMana();
+	if (CurrentMana != ManaBeforeAttributeChange)
+	{
+		OnManaChanged.Broadcast(CurrentMana, GetMaxMana());
+	}
 }

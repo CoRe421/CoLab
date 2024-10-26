@@ -3,6 +3,7 @@
 
 #include "GameplayAbilitySystem/Attributes/CollabHealthAttributeSet.h"
 #include "GameplayEffectExtension.h"
+#include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
 
 #include "Net/UnrealNetwork.h"
 
@@ -14,6 +15,16 @@ void UCollabHealthAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& Ol
 void UCollabHealthAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabHealthAttributeSet, Health, OldHealth);
+
+	const float CurrentHealth = GetHealth();
+	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth.GetCurrentValue());
+
+	if ((CurrentHealth <= 0.0f) && !bOutOfHealth)
+	{
+		OnOutOfHealth.Broadcast();
+	}
+
+	bOutOfHealth = (CurrentHealth <= 0.0f);
 }
 
 void UCollabHealthAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -31,9 +42,33 @@ void UCollabHealthAttributeSet::PreAttributeChange(const FGameplayAttribute& Att
 	ClampAttribute(Attribute, NewValue);
 }
 
+void UCollabHealthAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
+{
+	Super::PostAttributeChange(Attribute, OldValue, NewValue);
+
+	if (bOutOfHealth && (GetHealth() > 0.0f))
+	{
+		bOutOfHealth = false;
+	}
+}
+
+bool UCollabHealthAttributeSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
+{
+	if (!Super::PreGameplayEffectExecute(Data))
+	{
+		return false;
+	}
+	
+	// Save the current health
+	HealthBeforeAttributeChange = GetHealth();
+	
+	return true;
+}
+
 void UCollabHealthAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
+	
 	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
 	{
 		const float LocalDamageDone = GetDamage();
@@ -47,6 +82,25 @@ void UCollabHealthAttributeSet::PostGameplayEffectExecute(const FGameplayEffectM
 	}
 
 	// Use this function to trigger in-game reactions to attribute changes
+	const float CurrentHealth = GetHealth();
+	if (CurrentHealth != HealthBeforeAttributeChange)
+	{
+		OnHealthChanged.Broadcast(CurrentHealth, GetMaxHealth());
+	}
+
+	if ((CurrentHealth <= 0.0f) && !bOutOfHealth)
+	{
+		OnOutOfHealth.Broadcast();
+	}
+
+	// Check health again in case an event above changed it.
+	bOutOfHealth = CurrentHealth <= 0.0f;
+}
+
+void UCollabHealthAttributeSet::SetupBindings_Implementation(
+	UCollabAbilitySystemComponent* AbilitySystemComponent)
+{
+	Super::SetupBindings_Implementation(AbilitySystemComponent);
 }
 
 void UCollabHealthAttributeSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const

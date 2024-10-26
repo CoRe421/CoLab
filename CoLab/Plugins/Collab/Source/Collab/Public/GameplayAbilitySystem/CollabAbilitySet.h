@@ -12,7 +12,7 @@ class UCollabAbilitySystemComponent;
 struct FActiveGameplayEffectHandle;
 struct FGameplayAbilitySpecHandle;
 class UAttributeSet;
-class UCollabAttributeSetBase;
+class UCollabAttributeSet;
 class UCollabGameplayEffect;
 class UCollabGameplayAbility;
 /**
@@ -75,7 +75,7 @@ struct FCollabAbilitySet_AttributeSet
 public:
 	// Gameplay effect to grant.
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UCollabAttributeSetBase> AttributeSet;
+	TSubclassOf<UCollabAttributeSet> AttributeSet;
 
 };
 
@@ -127,7 +127,9 @@ public:
 
 	// Grants the ability set to the specified ability system component.
 	// The returned handles can be used later to take away anything that was granted.
-	void GiveToAbilitySystem(UCollabAbilitySystemComponent* CollabASC, FCollabAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject = nullptr) const;
+	void GrantToAbilitySystem(UCollabAbilitySystemComponent* CollabASC, FCollabAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject = nullptr) const;
+
+	void ApplyGameplayEffects(UCollabAbilitySystemComponent* CollabASC, FCollabAbilitySet_GrantedHandles* OutGrantedHandles) const;
 
 protected:
 

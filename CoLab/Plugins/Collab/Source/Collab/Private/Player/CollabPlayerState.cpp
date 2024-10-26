@@ -19,8 +19,6 @@ ACollabPlayerState::ACollabPlayerState()
 	AbilitySystemComponent = CreateDefaultSubobject<UCollabAbilitySystemComponent>(TEXT("CollabPlayerStateASC"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-	
-	HealthAttributeSet = CreateDefaultSubobject<UCollabHealthAttributeSet>("HealthAttributeSet");
 }
 
 void ACollabPlayerState::PostInitializeComponents()
@@ -28,12 +26,6 @@ void ACollabPlayerState::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	check(IsValid(AbilitySystemComponent));
-	AActor* PawnActor = GetPawn();
-	// AbilitySystemComponent->InitAbilityActorInfo(this, PawnActor);
-	// if (!HasAuthority())
-	// {
-	// 	UE_LOG(LogCollab, Log, TEXT("Not Authority!"));
-	// }
 	
 	if (ACollabGameMode* CollabGameMode = GetWorld()->GetAuthGameMode<ACollabGameMode>())
 	{
@@ -73,13 +65,35 @@ void ACollabPlayerState::SetPawnData(const UCollabPawnData* InPawnData)
 
 	if (HasAuthority())
 	{
-		for (const UCollabAbilitySet* AbilitySet : PawnData->AbilitySets)
+		for (const UCollabAbilitySet* AbilitySet : PawnData->DefaultAbilitySets)
 		{
-			if (AbilitySet)
+			if (!IsValid(AbilitySet))
 			{
-				AbilitySet->GiveToAbilitySystem(AbilitySystemComponent, nullptr, this);
+				continue;
 			}
+			
+			AbilitySet->GrantToAbilitySystem(AbilitySystemComponent, nullptr, this);
 		}
+	}
+	
+	ForceNetUpdate();
+}
+
+void ACollabPlayerState::ApplyDefaultGameplayEffects()
+{
+	if (!HasAuthority())
+	{
+		return;
+	}
+	
+	for (const UCollabAbilitySet* AbilitySet : PawnData->DefaultAbilitySets)
+	{
+		if (!IsValid(AbilitySet))
+		{
+			continue;
+		}
+		
+		AbilitySet->ApplyGameplayEffects(AbilitySystemComponent, nullptr);
 	}
 	
 	ForceNetUpdate();

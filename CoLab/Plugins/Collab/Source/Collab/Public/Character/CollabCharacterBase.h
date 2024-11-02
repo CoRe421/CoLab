@@ -7,6 +7,8 @@
 #include "GameFramework/Character.h"
 #include "CollabCharacterBase.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDynamicEvent_OnAbilitySystemInit, UCollabAbilitySystemComponent*, ASC);
+
 class UCollabAbilitySystemComponent;
 class UCollabPawnExtensionComponent;
 
@@ -18,9 +20,18 @@ class COLLAB_API ACollabCharacterBase : public ACharacter, public IAbilitySystem
 protected:
 	TWeakObjectPtr<UCollabAbilitySystemComponent> AbilitySystemComponent;
 
-// protected:
-// 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = "true"))
-// 	TObjectPtr<UCollabPawnExtensionComponent> PawnExtComponent;
+public:
+	UPROPERTY(BlueprintAssignable, BlueprintReadOnly)
+	FDynamicEvent_OnAbilitySystemInit OnAbilitySystemInit;
+
+private:
+	
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collab|Character", Meta = (AllowPrivateAccess = "true"))
+	// TObjectPtr<UCollabDeathComponent> DeathComponent;
+
+	// protected:
+	// 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = "true"))
+	// 	TObjectPtr<UCollabPawnExtensionComponent> PawnExtComponent;
 
 public:
 	// Sets default values for this pawn's properties
@@ -41,4 +52,22 @@ public:
 	virtual UCollabAbilitySystemComponent* GetCollabAbilitySystemComponent() const;
 	UFUNCTION(BlueprintCallable)
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
+	// Begins the death sequence for the character (disables collision, disables movement, etc...)
+	UFUNCTION()
+	virtual void BeginDestroyCharacter(const bool bDeffered = false);
+
+	// Ends the death sequence for the character (detaches controller, destroys pawn, etc...)
+	UFUNCTION()
+	virtual void FinishDestroyCharacter();
+	
+protected:
+	void DisableMovementAndCollision();
+	void DestroyCharacter();
+	
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+	void OnDestroyCharacter();
+
+	void UninitAndDestroy();
+	void UninitializeAbilitySystem();
 };

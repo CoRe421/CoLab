@@ -95,5 +95,8 @@ void ACollabPlayerCharacter::InitAbilitySystemComponent()
 		}
 		
 		SetupAbilitySystemComponentBindings();
+
+		// Broadcast ability system initialized here for death/health component to bind to
+		OnAbilitySystemInit.Broadcast(AbilitySystemComponent.Get());
 	}
 }

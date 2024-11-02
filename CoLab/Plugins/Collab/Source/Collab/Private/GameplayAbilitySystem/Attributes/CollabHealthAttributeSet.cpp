@@ -17,11 +17,15 @@ void UCollabHealthAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHe
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabHealthAttributeSet, Health, OldHealth);
 
 	const float CurrentHealth = GetHealth();
-	OnHealthChanged.Broadcast(CurrentHealth, MaxHealth.GetCurrentValue());
+	const float EstimatedMagnitude = CurrentHealth - OldHealth.GetCurrentValue();
+	
+	BP_OnHealthChanged.Broadcast(CurrentHealth, MaxHealth.GetCurrentValue());
+	OnHealthChanged.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, OldHealth.GetCurrentValue(), CurrentHealth);
 
 	if ((CurrentHealth <= 0.0f) && !bOutOfHealth)
 	{
-		OnOutOfHealth.Broadcast();
+		BP_OnOutOfHealth.Broadcast();
+		OnOutOfHealth.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, OldHealth.GetCurrentValue(), CurrentHealth);
 	}
 
 	bOutOfHealth = (CurrentHealth <= 0.0f);
@@ -69,6 +73,10 @@ void UCollabHealthAttributeSet::PostGameplayEffectExecute(const FGameplayEffectM
 {
 	Super::PostGameplayEffectExecute(Data);
 	
+	const FGameplayEffectContextHandle& EffectContext = Data.EffectSpec.GetEffectContext();
+	AActor* Instigator = EffectContext.GetOriginalInstigator();
+	AActor* Causer = EffectContext.GetEffectCauser();
+	
 	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
 	{
 		const float LocalDamageDone = GetDamage();
@@ -85,12 +93,14 @@ void UCollabHealthAttributeSet::PostGameplayEffectExecute(const FGameplayEffectM
 	const float CurrentHealth = GetHealth();
 	if (CurrentHealth != HealthBeforeAttributeChange)
 	{
-		OnHealthChanged.Broadcast(CurrentHealth, GetMaxHealth());
+		BP_OnHealthChanged.Broadcast(CurrentHealth, GetMaxHealth());
+		OnHealthChanged.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, HealthBeforeAttributeChange, GetHealth());
 	}
 
 	if ((CurrentHealth <= 0.0f) && !bOutOfHealth)
 	{
-		OnOutOfHealth.Broadcast();
+		BP_OnOutOfHealth.Broadcast();
+		OnOutOfHealth.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, HealthBeforeAttributeChange, GetHealth());
 	}
 
 	// Check health again in case an event above changed it.

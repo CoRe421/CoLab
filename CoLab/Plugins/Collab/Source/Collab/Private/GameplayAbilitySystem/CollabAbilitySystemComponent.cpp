@@ -32,10 +32,3 @@ void UCollabAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick Ti
 
 	// ...
 }
-
-void UCollabAbilitySystemComponent::ReceiveDamage(UCollabAbilitySystemComponent* SourceASC, float UnmitigatedDamage,
-	float MitigatedDamage)
-{
-	ReceivedDamage.Broadcast(SourceASC, UnmitigatedDamage, MitigatedDamage);
-}
-

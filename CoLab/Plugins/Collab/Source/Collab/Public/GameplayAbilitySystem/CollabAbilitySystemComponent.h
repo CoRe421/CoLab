@@ -13,12 +13,6 @@ UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class COLLAB_API UCollabAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
-	
-public:
-	bool bCharacterAbilitiesGiven = false;
-	bool bStartupEffectsApplied = false;
-
-	FDynamicEvent_ReceiveDamage ReceivedDamage;
 
 public:
 	// Sets default values for this component's properties
@@ -32,8 +26,4 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
-	
-
-	// Called from GDDamageExecCalculation. Broadcasts on ReceivedDamage whenever this ASC receives damage.
-	virtual void ReceiveDamage(UCollabAbilitySystemComponent* SourceASC, float UnmitigatedDamage, float MitigatedDamage);
 };

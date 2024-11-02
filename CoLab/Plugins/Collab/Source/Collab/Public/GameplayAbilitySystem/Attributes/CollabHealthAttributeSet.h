@@ -19,10 +19,12 @@ class COLLAB_API UCollabHealthAttributeSet : public UCollabAttributeSet
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintAssignable, BlueprintReadOnly)
-	mutable FDynamicEvent_OnHealthChanged OnHealthChanged;
-	UPROPERTY(BlueprintAssignable, BlueprintReadOnly)
-	mutable FDynamicEvent_OnOutOfHealth OnOutOfHealth;
+	UPROPERTY(BlueprintAssignable, BlueprintReadOnly, DisplayName="OnHealthChanged")
+	mutable FDynamicEvent_OnHealthChanged BP_OnHealthChanged;
+	mutable FNativeEvent_CollabAttributeEvent OnHealthChanged;
+	UPROPERTY(BlueprintAssignable, BlueprintReadOnly, DisplayName="OnOutOfHealth")
+	mutable FDynamicEvent_OnOutOfHealth BP_OnOutOfHealth;
+	mutable FNativeEvent_CollabAttributeEvent OnOutOfHealth;
 
 private:
 	// Used to track when the health reaches 0.

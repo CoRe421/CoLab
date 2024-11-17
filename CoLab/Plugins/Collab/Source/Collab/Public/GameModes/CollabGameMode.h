@@ -35,4 +35,9 @@ public:
 	virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
 	virtual APawn* SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform) override;
 	//~End AGameModeBase interface
+
+	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
+
+private:
+	void RestartPlayers();
 };

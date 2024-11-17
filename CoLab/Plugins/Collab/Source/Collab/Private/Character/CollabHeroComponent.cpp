@@ -54,11 +54,11 @@ void UCollabHeroComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 void UCollabHeroComponent::InitializeHeroComponent()
 {
 	APawn* Pawn = GetPawn<APawn>();
-	// ACollabPlayerState* CollabPlayerState = GetPlayerState<ACollabPlayerState>();
-	// if (!ensure(IsValid(Pawn) && IsValid(CollabPlayerState)))
-	// {
-	// 	return;
-	// }
+	ACollabPlayerState* CollabPlayerState = GetPlayerState<ACollabPlayerState>();
+	if (!ensure(IsValid(Pawn) && IsValid(CollabPlayerState)))
+	{
+		return;
+	}
 
 	const ACollabPlayerController* CollabPlayerController = GetController<ACollabPlayerController>();
 	if (IsValid(CollabPlayerController))

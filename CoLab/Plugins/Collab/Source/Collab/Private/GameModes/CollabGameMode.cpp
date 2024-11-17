@@ -106,3 +106,25 @@ APawn* ACollabGameMode::SpawnDefaultPawnAtTransform_Implementation(AController* 
 
 	return nullptr;
 }
+
+void ACollabGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
+
+	// GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::RestartPlayers);
+}
+
+void ACollabGameMode::RestartPlayers()
+{
+	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+	{
+		APlayerController* PC = Cast<APlayerController>(*Iterator);
+		if ((PC != nullptr) && (PC->GetPawn() == nullptr))
+		{
+			if (PlayerCanRestart(PC))
+			{
+				RestartPlayer(PC);
+			}
+		}
+	}
+}

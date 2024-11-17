@@ -3,6 +3,8 @@
 
 #include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
 
+#include "GameplayAbilitySystem/Abilities/CollabGameplayAbility.h"
+
 
 // Sets default values for this component's properties
 UCollabAbilitySystemComponent::UCollabAbilitySystemComponent()
@@ -21,6 +23,8 @@ void UCollabAbilitySystemComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
+
+	// ExecutePeriodicEffect()
 }
 
 
@@ -32,3 +36,93 @@ void UCollabAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick Ti
 
 	// ...
 }
+
+void UCollabAbilitySystemComponent::AbilityInputPressed(const FGameplayTag& InputTag)
+{
+	if (!InputTag.IsValid())
+	{
+		return;
+	}
+	
+	ABILITYLIST_SCOPE_LOCK();
+
+	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	{
+		if (!Spec.DynamicAbilityTags.HasTagExact(InputTag))
+		{
+			return;
+		}
+		
+		if (!Spec.IsActive())
+		{
+			TryActivateAbility(Spec.Handle);
+		}
+		else
+		{
+			InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle,
+				Spec.ActivationInfo.GetActivationPredictionKey());
+		}
+	}
+}
+
+void UCollabAbilitySystemComponent::AbilityInputReleased(const FGameplayTag& InputTag)
+{
+	if (!InputTag.IsValid())
+	{
+		return;
+	}
+	
+	ABILITYLIST_SCOPE_LOCK();
+
+	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	{
+		if (!Spec.DynamicAbilityTags.HasTagExact(InputTag))
+		{
+			return;
+		}
+		
+		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle,
+			Spec.ActivationInfo.GetActivationPredictionKey());
+	}
+}
+
+FGameplayAbilitySpecHandle UCollabAbilitySystemComponent::GiveCharacterAbility(FGameplayAbilitySpec& AbilitySpec)
+{
+	UCollabGameplayAbility* CollabAbility = Cast<UCollabGameplayAbility>(AbilitySpec.Ability);
+	if (IsValid(CollabAbility))
+	{
+		AbilitySpec.DynamicAbilityTags.AddTag(CollabAbility->InputTag);
+	}
+
+	return GiveAbility(AbilitySpec);
+}
+
+// void UCollabAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
+// {
+// 	if (InputTag.IsValid())
+// 	{
+// 		for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
+// 		{
+// 			if (AbilitySpec.Ability && (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag)))
+// 			{
+// 				InputPressedSpecHandles.AddUnique(AbilitySpec.Handle);
+// 				InputHeldSpecHandles.AddUnique(AbilitySpec.Handle);
+// 			}
+// 		}
+// 	}
+// }
+//
+// void UCollabAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InputTag)
+// {
+// 	if (InputTag.IsValid())
+// 	{
+// 		for (const FGameplayAbilitySpec& AbilitySpec : ActivatableAbilities.Items)
+// 		{
+// 			if (AbilitySpec.Ability && (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag)))
+// 			{
+// 				InputReleasedSpecHandles.AddUnique(AbilitySpec.Handle);
+// 				InputHeldSpecHandles.Remove(AbilitySpec.Handle);
+// 			}
+// 		}
+// 	}
+// }

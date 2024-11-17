@@ -3,8 +3,14 @@
 
 #include "GameplayAbilitySystem/Attributes/CollabSpellcastAttributeSet.h"
 
+#include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
 
+
+namespace CollabSpellcastGameplayTags
+{
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Gameplay_State_Spellcast, "Gameplay.State.Spellcast", "Target has recently cast a spell.");
+}
 
 void UCollabSpellcastAttributeSet::OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana)
 {
@@ -44,10 +50,32 @@ void UCollabSpellcastAttributeSet::PostGameplayEffectExecute(const FGameplayEffe
 {
 	Super::PostGameplayEffectExecute(Data);
 	
+	const FGameplayEffectContextHandle& EffectContext = Data.EffectSpec.GetEffectContext();
+	AActor* Instigator = EffectContext.GetOriginalInstigator();
+	AActor* Causer = EffectContext.GetEffectCauser();
+	
+	if (Data.EvaluatedData.Attribute == GetManaAttribute())
+	{
+		SetMana(FMath::Clamp(GetMana(), 0.0f, GetMaxMana()));
+	}
+	
 	// Use this function to trigger in-game reactions to attribute changes
 	const float CurrentMana = GetMana();
 	if (CurrentMana != ManaBeforeAttributeChange)
 	{
 		OnManaChanged.Broadcast(CurrentMana, GetMaxMana());
+	}
+}
+
+void UCollabSpellcastAttributeSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const
+{
+	if (Attribute == GetManaAttribute())
+	{
+		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxMana());
+	}
+	else if (Attribute == GetMaxManaAttribute())
+	{
+		// Stops max mana from going below 1 - CR
+		NewValue = FMath::Max(NewValue, 1.f);
 	}
 }

@@ -2,57 +2,57 @@
 
 #pragma once
 
-// #include "CoreMinimal.h"
-// #include "GameplayTagContainer.h"
-// #include "Engine/DataAsset.h"
-// #include "CollabInputConfig.generated.h"
-// 
-// class UInputAction;
-// /**
-//  * FCollabInputAction
-//  *
-//  *	Struct used to map a input action to a gameplay input tag.
-//  */
-// USTRUCT(BlueprintType)
-// struct FCollabInputAction
-// {
-// 	GENERATED_BODY()
-//
-// public:
-//
-// 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-// 	TObjectPtr<const UInputAction> InputAction = nullptr;
-//
-// 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (Categories = "InputTag"))
-// 	FGameplayTag InputTag;
-// };
-//
-// /**
-//  * UCollabInputConfig
-//  *
-//  *	Non-mutable data asset that contains input configuration properties.
-//  */
-// UCLASS(BlueprintType, Const)
-// class UCollabInputConfig : public UDataAsset
-// {
-// 	GENERATED_BODY()
-//
-// public:
-//
-// 	UCollabInputConfig(const FObjectInitializer& ObjectInitializer);
-//
-// 	UFUNCTION(BlueprintCallable, Category = "Collab|Pawn")
-// 	const UInputAction* FindNativeInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound = true) const;
-//
-// 	UFUNCTION(BlueprintCallable, Category = "Collab|Pawn")
-// 	const UInputAction* FindAbilityInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound = true) const;
-//
-// public:
-// 	// List of input actions used by the owner.  These input actions are mapped to a gameplay tag and must be manually bound.
-// 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (TitleProperty = "InputAction"))
-// 	TArray<FCollabInputAction> NativeInputActions;
-//
-// 	// List of input actions used by the owner.  These input actions are mapped to a gameplay tag and are automatically bound to abilities with matching input tags.
-// 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (TitleProperty = "InputAction"))
-// 	TArray<FCollabInputAction> AbilityInputActions;
-// };
+#include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
+#include "Engine/DataAsset.h"
+#include "CollabInputConfig.generated.h"
+
+class UInputAction;
+/**
+ * FCollabInputAction
+ *
+ *	Struct used to map a input action to a gameplay input tag.
+ */
+USTRUCT(BlueprintType)
+struct FCollabInputAction
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSoftObjectPtr<const UInputAction> InputAction = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (Categories = "InputTag"))
+	FGameplayTag InputTag;
+};
+
+/**
+ * UCollabInputConfig
+ *
+ *	Non-mutable data asset that contains input configuration properties.
+ */
+UCLASS(BlueprintType, Const)
+class UCollabInputConfig : public UDataAsset
+{
+	GENERATED_BODY()
+
+public:
+	// List of input actions used by the owner.  These input actions are mapped to a gameplay tag and must be manually bound.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (TitleProperty = "InputAction"))
+	TArray<FCollabInputAction> NativeInputActions;
+
+	// List of input actions used by the owner.  These input actions are mapped to a gameplay tag and are automatically bound to abilities with matching input tags.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (TitleProperty = "InputAction"))
+	TArray<FCollabInputAction> AbilityInputActions;
+
+public:
+
+	UCollabInputConfig(const FObjectInitializer& ObjectInitializer);
+
+	UFUNCTION(BlueprintCallable, Category = "Collab|Pawn")
+	const UInputAction* FindNativeInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound = true) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Collab|Pawn")
+	const UInputAction* FindAbilityInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound = true) const;
+};

@@ -26,4 +26,10 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 	                           FActorComponentTickFunction* ThisTickFunction) override;
+
+	void AbilityInputPressed(const FGameplayTag& InputTag);
+	void AbilityInputReleased(const FGameplayTag& InputTag);
+
+	UFUNCTION(BlueprintCallable)
+	FGameplayAbilitySpecHandle GiveCharacterAbility(FGameplayAbilitySpec& AbilitySpec);
 };

@@ -4,6 +4,7 @@
 #include "Character/CollabPlayerCharacter.h"
 
 #include "CollabLog.h"
+#include "Character/CollabHeroComponent.h"
 #include "Character/CollabPawnExtensionComponent.h"
 #include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
 #include "Kismet/KismetStringLibrary.h"
@@ -16,6 +17,8 @@ ACollabPlayerCharacter::ACollabPlayerCharacter()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	HeroComponent = CreateDefaultSubobject<UCollabHeroComponent>(TEXT("HeroComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -71,6 +74,9 @@ void ACollabPlayerCharacter::Tick(float DeltaTime)
 void ACollabPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	
+	// Placed here to be sure input component is valid - CR
+	HeroComponent->InitializeHeroComponent();
 }
 
 void ACollabPlayerCharacter::InitAbilitySystemComponent()

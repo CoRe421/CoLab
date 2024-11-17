@@ -7,7 +7,31 @@
 #include "Character/CollabPawnData.h"
 #include "Character/CollabPawnExtensionComponent.h"
 #include "Character/CollabPlayerCharacter.h"
+#include "GameModes/CollabGameData.h"
 #include "Player/CollabPlayerState.h"
+
+const UCollabGameData* ACollabGameMode::GetDefaultGameData(const AActor* WorldContext)
+{
+	if (!IsValid(WorldContext))
+	{
+		return nullptr;
+	}
+
+	const UWorld* World = WorldContext->GetWorld();
+	if (!IsValid(World))
+	{
+		return nullptr;
+	}
+
+	const ACollabGameMode* GameMode = Cast<ACollabGameMode>(World->GetAuthGameMode());
+	if (!IsValid(GameMode))
+	{
+		return nullptr;
+	}
+
+	const UCollabGameData* LoadedGameData = GameMode->DefaultGameData.LoadSynchronous();
+	return LoadedGameData;
+}
 
 const UCollabPawnData* ACollabGameMode::GetPawnDataForController(const AController* InController) const
 {
@@ -29,11 +53,13 @@ const UCollabPawnData* ACollabGameMode::GetPawnDataForController(const AControll
 
 UClass* ACollabGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
-	if (const UCollabPawnData* PawnData = GetPawnDataForController(InController))
+	const UCollabPawnData* PawnData = GetPawnDataForController(InController);
+	if (IsValid(PawnData))
 	{
-		if (PawnData->PawnClass)
+		UClass* PawnClass = PawnData->PawnClass.LoadSynchronous();
+		if (IsValid(PawnClass))
 		{
-			return PawnData->PawnClass;
+			return PawnClass;
 		}
 	}
 	
@@ -52,17 +78,17 @@ APawn* ACollabGameMode::SpawnDefaultPawnAtTransform_Implementation(AController* 
 	{
 		if (APawn* SpawnedPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnInfo))
 		{
-			if (UCollabPawnExtensionComponent* PawnExtComp = UCollabPawnExtensionComponent::FindPawnExtensionComponent(SpawnedPawn))
-			{
-				if (const UCollabPawnData* PawnData = GetPawnDataForController(NewPlayer))
-				{
-					PawnExtComp->SetPawnData(PawnData);
-				}
-				else
-				{
-					UE_LOG(LogCollab, Error, TEXT("Game mode was unable to set PawnData on the spawned pawn [%s]."), *GetNameSafe(SpawnedPawn));
-				}
-			}
+			// if (UCollabPawnExtensionComponent* PawnExtComp = UCollabPawnExtensionComponent::FindPawnExtensionComponent(SpawnedPawn))
+			// {
+			// 	if (const UCollabPawnData* PawnData = GetPawnDataForController(NewPlayer))
+			// 	{
+			// 		PawnExtComp->SetPawnData(PawnData);
+			// 	}
+			// 	else
+			// 	{
+			// 		UE_LOG(LogCollab, Error, TEXT("Game mode was unable to set PawnData on the spawned pawn [%s]."), *GetNameSafe(SpawnedPawn));
+			// 	}
+			// }
 
 			SpawnedPawn->FinishSpawning(SpawnTransform);
 

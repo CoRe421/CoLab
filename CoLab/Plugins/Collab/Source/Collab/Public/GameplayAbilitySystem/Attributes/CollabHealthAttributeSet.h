@@ -4,11 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
+#include "NativeGameplayTags.h"
 #include "GameplayAbilitySystem/Attributes/CollabAttributeSet.h"
 #include "CollabHealthAttributeSet.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FDynamicEvent_OnHealthChanged, const float, NewHealth, const float, MaxHealth);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDynamicEvent_OnOutOfHealth);
+
+namespace CollabHealthGameplayTags
+{
+	COLLAB_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gameplay_State_Damaged);
+}
 
 /**
  * 

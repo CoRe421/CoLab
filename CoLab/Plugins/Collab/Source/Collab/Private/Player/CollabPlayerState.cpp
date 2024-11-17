@@ -4,11 +4,15 @@
 #include "Player/CollabPlayerState.h"
 
 #include "CollabLog.h"
+#include "EnhancedInputSubsystemInterface.h"
+#include "EnhancedInputSubsystems.h"
 #include "Character/CollabPawnData.h"
 #include "GameModes/CollabGameMode.h"
 #include "GameplayAbilitySystem/CollabAbilitySet.h"
 #include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
 #include "GameplayAbilitySystem/Attributes/CollabHealthAttributeSet.h"
+#include "Input/CollabInputComponent.h"
+#include "Input/CollabInputConfig.h"
 #include "Net/UnrealNetwork.h"
 
 ACollabPlayerState::ACollabPlayerState()
@@ -65,9 +69,10 @@ void ACollabPlayerState::SetPawnData(const UCollabPawnData* InPawnData)
 
 	if (HasAuthority())
 	{
-		for (const UCollabAbilitySet* AbilitySet : PawnData->DefaultAbilitySets)
+		for (const TSoftObjectPtr<UCollabAbilitySet> AbilitySet : PawnData->DefaultAbilitySets)
 		{
-			if (!IsValid(AbilitySet))
+			const UCollabAbilitySet* LoadedAbilitySet = AbilitySet.LoadSynchronous();
+			if (!IsValid(LoadedAbilitySet))
 			{
 				continue;
 			}
@@ -86,9 +91,10 @@ void ACollabPlayerState::ApplyDefaultGameplayEffects()
 		return;
 	}
 	
-	for (const UCollabAbilitySet* AbilitySet : PawnData->DefaultAbilitySets)
+	for (const TSoftObjectPtr<UCollabAbilitySet> AbilitySet : PawnData->DefaultAbilitySets)
 	{
-		if (!IsValid(AbilitySet))
+		const UCollabAbilitySet* LoadedAbilitySet = AbilitySet.LoadSynchronous();
+		if (!IsValid(LoadedAbilitySet))
 		{
 			continue;
 		}

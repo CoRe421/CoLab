@@ -1,153 +1,153 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Character/CollabPawnExtensionComponent.h"
-
-#include "CollabLog.h"
-#include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
-#include "Character/CollabPawnData.h"
-#include "Net/UnrealNetwork.h"
-
-
-// Sets default values for this component's properties
-UCollabPawnExtensionComponent::UCollabPawnExtensionComponent(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
-}
-
-
-// Called when the game starts
-void UCollabPawnExtensionComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// ...
-	
-}
-
-void UCollabPawnExtensionComponent::OnRep_PawnData()
-{
-	// CheckDefaultInitialization();
-}
-
-void UCollabPawnExtensionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(ThisClass, PawnData);
-}
-
-
-// Called every frame
-void UCollabPawnExtensionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
-                                                  FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
-}
-
-void UCollabPawnExtensionComponent::SetPawnData(const UCollabPawnData* InPawnData)
-{
-	check(InPawnData);
-
-	APawn* Pawn = GetPawnChecked<APawn>();
-
-	if (Pawn->GetLocalRole() != ROLE_Authority)
-	{
-		return;
-	}
-
-	if (PawnData)
-	{
-		UE_LOG(LogCollab, Error, TEXT("Trying to set PawnData [%s] on pawn [%s] that already has valid PawnData [%s]."), *GetNameSafe(InPawnData), *GetNameSafe(Pawn), *GetNameSafe(PawnData));
-		return;
-	}
-
-	PawnData = InPawnData;
-
-	Pawn->ForceNetUpdate();
-
-	// CheckDefaultInitialization();
-}
-
-void UCollabPawnExtensionComponent::InitializeAbilitySystem(UCollabAbilitySystemComponent* InASC, AActor* InOwnerActor)
-{
-	check(InASC);
-	check(InOwnerActor);
-
-	if (AbilitySystemComponent == InASC)
-	{
-		// The ability system component hasn't changed.
-		return;
-	}
-
-	if (AbilitySystemComponent.Get())
-	{
-		// Clean up the old ability system component.
-		UninitializeAbilitySystem();
-	}
-
-	APawn* Pawn = GetPawnChecked<APawn>();
-	AActor* ExistingAvatar = InASC->GetAvatarActor();
-
-	UE_LOG(LogCollab, Verbose, TEXT("Setting up ASC [%s] on pawn [%s] owner [%s], existing [%s] "), *GetNameSafe(InASC), *GetNameSafe(Pawn), *GetNameSafe(InOwnerActor), *GetNameSafe(ExistingAvatar));
-
-	if (IsValid(ExistingAvatar) && (ExistingAvatar != Pawn))
-	{
-		UE_LOG(LogCollab, Log, TEXT("Existing avatar (authority=%d)"), ExistingAvatar->HasAuthority() ? 1 : 0);
-
-		// There is already a pawn acting as the ASC's avatar, so we need to kick it out
-		// This can happen on clients if they're lagged: their new pawn is spawned + possessed before the dead one is removed
-		ensure(!ExistingAvatar->HasAuthority());
-
-		if (UCollabPawnExtensionComponent* OtherExtensionComponent = FindPawnExtensionComponent(ExistingAvatar))
-		{
-			OtherExtensionComponent->UninitializeAbilitySystem();
-		}
-	}
-
-	AbilitySystemComponent = InASC;
-	AbilitySystemComponent->InitAbilityActorInfo(InOwnerActor, Pawn);
-	if (!HasAuthority())
-	{
-		UE_LOG(LogCollab, Log, TEXT("Not Authority!"));
-	}
-}
-
-void UCollabPawnExtensionComponent::UninitializeAbilitySystem()
-{
-	if (!AbilitySystemComponent.IsValid())
-	{
-		return;
-	}
-
-	// Uninitialize the ASC if we're still the avatar actor (otherwise another pawn already did it when they became the avatar actor)
-	if (AbilitySystemComponent->GetAvatarActor() == GetOwner())
-	{
-		// FGameplayTagContainer AbilityTypesToIgnore;
-		// AbilityTypesToIgnore.AddTag(LyraGameplayTags::Ability_Behavior_SurvivesDeath);
-		//
-		// AbilitySystemComponent->CancelAbilities(nullptr, &AbilityTypesToIgnore);
-		// AbilitySystemComponent->ClearAbilityInput();
-		// AbilitySystemComponent->RemoveAllGameplayCues();
-
-		if (AbilitySystemComponent->GetOwnerActor() != nullptr)
-		{
-			AbilitySystemComponent->SetAvatarActor(nullptr);
-		}
-		else
-		{
-			// If the ASC doesn't have a valid owner, we need to clear *all* actor info, not just the avatar pairing
-			AbilitySystemComponent->ClearActorInfo();
-		}
-	}
-
-	AbilitySystemComponent = nullptr;
-}
+// #include "Character/CollabPawnExtensionComponent.h"
+//
+// #include "CollabLog.h"
+// #include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
+// #include "Character/CollabPawnData.h"
+// #include "Net/UnrealNetwork.h"
+//
+//
+// // Sets default values for this component's properties
+// UCollabPawnExtensionComponent::UCollabPawnExtensionComponent(const FObjectInitializer& ObjectInitializer)
+// 	: Super(ObjectInitializer)
+// {
+// 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
+// 	// off to improve performance if you don't need them.
+// 	PrimaryComponentTick.bCanEverTick = true;
+//
+// 	// ...
+// }
+//
+//
+// // Called when the game starts
+// void UCollabPawnExtensionComponent::BeginPlay()
+// {
+// 	Super::BeginPlay();
+//
+// 	// ...
+// 	
+// }
+//
+// void UCollabPawnExtensionComponent::OnRep_PawnData()
+// {
+// 	// CheckDefaultInitialization();
+// }
+//
+// void UCollabPawnExtensionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+// {
+// 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+//
+// 	DOREPLIFETIME(ThisClass, PawnData);
+// }
+//
+//
+// // Called every frame
+// void UCollabPawnExtensionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
+//                                                   FActorComponentTickFunction* ThisTickFunction)
+// {
+// 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+//
+// 	// ...
+// }
+//
+// void UCollabPawnExtensionComponent::SetPawnData(const UCollabPawnData* InPawnData)
+// {
+// 	check(InPawnData);
+//
+// 	APawn* Pawn = GetPawnChecked<APawn>();
+//
+// 	if (Pawn->GetLocalRole() != ROLE_Authority)
+// 	{
+// 		return;
+// 	}
+//
+// 	if (PawnData)
+// 	{
+// 		UE_LOG(LogCollab, Error, TEXT("Trying to set PawnData [%s] on pawn [%s] that already has valid PawnData [%s]."), *GetNameSafe(InPawnData), *GetNameSafe(Pawn), *GetNameSafe(PawnData));
+// 		return;
+// 	}
+//
+// 	PawnData = InPawnData;
+//
+// 	Pawn->ForceNetUpdate();
+//
+// 	// CheckDefaultInitialization();
+// }
+//
+// void UCollabPawnExtensionComponent::InitializeAbilitySystem(UCollabAbilitySystemComponent* InASC, AActor* InOwnerActor)
+// {
+// 	check(InASC);
+// 	check(InOwnerActor);
+//
+// 	if (AbilitySystemComponent == InASC)
+// 	{
+// 		// The ability system component hasn't changed.
+// 		return;
+// 	}
+//
+// 	if (AbilitySystemComponent.Get())
+// 	{
+// 		// Clean up the old ability system component.
+// 		UninitializeAbilitySystem();
+// 	}
+//
+// 	APawn* Pawn = GetPawnChecked<APawn>();
+// 	AActor* ExistingAvatar = InASC->GetAvatarActor();
+//
+// 	UE_LOG(LogCollab, Verbose, TEXT("Setting up ASC [%s] on pawn [%s] owner [%s], existing [%s] "), *GetNameSafe(InASC), *GetNameSafe(Pawn), *GetNameSafe(InOwnerActor), *GetNameSafe(ExistingAvatar));
+//
+// 	if (IsValid(ExistingAvatar) && (ExistingAvatar != Pawn))
+// 	{
+// 		UE_LOG(LogCollab, Log, TEXT("Existing avatar (authority=%d)"), ExistingAvatar->HasAuthority() ? 1 : 0);
+//
+// 		// There is already a pawn acting as the ASC's avatar, so we need to kick it out
+// 		// This can happen on clients if they're lagged: their new pawn is spawned + possessed before the dead one is removed
+// 		ensure(!ExistingAvatar->HasAuthority());
+//
+// 		if (UCollabPawnExtensionComponent* OtherExtensionComponent = FindPawnExtensionComponent(ExistingAvatar))
+// 		{
+// 			OtherExtensionComponent->UninitializeAbilitySystem();
+// 		}
+// 	}
+//
+// 	AbilitySystemComponent = InASC;
+// 	AbilitySystemComponent->InitAbilityActorInfo(InOwnerActor, Pawn);
+// 	if (!HasAuthority())
+// 	{
+// 		UE_LOG(LogCollab, Log, TEXT("Not Authority!"));
+// 	}
+// }
+//
+// void UCollabPawnExtensionComponent::UninitializeAbilitySystem()
+// {
+// 	if (!AbilitySystemComponent.IsValid())
+// 	{
+// 		return;
+// 	}
+//
+// 	// Uninitialize the ASC if we're still the avatar actor (otherwise another pawn already did it when they became the avatar actor)
+// 	if (AbilitySystemComponent->GetAvatarActor() == GetOwner())
+// 	{
+// 		// FGameplayTagContainer AbilityTypesToIgnore;
+// 		// AbilityTypesToIgnore.AddTag(LyraGameplayTags::Ability_Behavior_SurvivesDeath);
+// 		//
+// 		// AbilitySystemComponent->CancelAbilities(nullptr, &AbilityTypesToIgnore);
+// 		// AbilitySystemComponent->ClearAbilityInput();
+// 		// AbilitySystemComponent->RemoveAllGameplayCues();
+//
+// 		if (AbilitySystemComponent->GetOwnerActor() != nullptr)
+// 		{
+// 			AbilitySystemComponent->SetAvatarActor(nullptr);
+// 		}
+// 		else
+// 		{
+// 			// If the ASC doesn't have a valid owner, we need to clear *all* actor info, not just the avatar pairing
+// 			AbilitySystemComponent->ClearActorInfo();
+// 		}
+// 	}
+//
+// 	AbilitySystemComponent = nullptr;
+// }
 

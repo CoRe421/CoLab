@@ -120,7 +120,7 @@ void UCollabAbilitySet::GrantToAbilitySystem(UCollabAbilitySystemComponent* Coll
 		AbilitySpec.SourceObject = SourceObject;
 		AbilitySpec.DynamicAbilityTags.AddTag(AbilityToGrant.InputTag);
 
-		const FGameplayAbilitySpecHandle AbilitySpecHandle = CollabASC->GiveAbility(AbilitySpec);
+		const FGameplayAbilitySpecHandle AbilitySpecHandle = CollabASC->GiveCharacterAbility(AbilitySpec);
 
 		if (OutGrantedHandles)
 		{
@@ -177,16 +177,18 @@ void UCollabAbilitySet::ApplyGameplayEffects(UCollabAbilitySystemComponent* Coll
 			continue;
 		}
 
-		const UGameplayEffect* GameplayEffect = EffectToGrant.GameplayEffect->GetDefaultObject<UGameplayEffect>();
-		const FGameplayEffectContextHandle EffectContext = CollabASC->MakeEffectContext();
-		const FPredictionKey NewPredictionKey = FPredictionKey();
-		bool HasAuthority = NewPredictionKey.IsValidForMorePrediction();
-		CollabASC->GameplayEffectApplicationQueries;
-		const FActiveGameplayEffectHandle GameplayEffectHandle = CollabASC->ApplyGameplayEffectToSelf(GameplayEffect, EffectToGrant.EffectLevel, EffectContext);
+		FGameplayEffectContextHandle EffectContext = CollabASC->MakeEffectContext();
+		EffectContext.AddSourceObject(CollabASC->GetAvatarActor());
 
-		if (OutGrantedHandles)
+		FGameplayEffectSpecHandle EffectSpecHandle = CollabASC->MakeOutgoingSpec(EffectToGrant.GameplayEffect, EffectToGrant.EffectLevel, EffectContext);
+		if (EffectSpecHandle.IsValid())
 		{
-			OutGrantedHandles->AddGameplayEffectHandle(GameplayEffectHandle);
+			FActiveGameplayEffectHandle GameplayEffectHandle = CollabASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
+
+			if (OutGrantedHandles)
+			{
+				OutGrantedHandles->AddGameplayEffectHandle(GameplayEffectHandle);
+			}
 		}
 	}
 }

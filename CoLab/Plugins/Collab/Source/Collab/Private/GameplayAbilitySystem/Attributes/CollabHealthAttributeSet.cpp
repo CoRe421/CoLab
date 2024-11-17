@@ -7,6 +7,11 @@
 
 #include "Net/UnrealNetwork.h"
 
+namespace CollabHealthGameplayTags
+{
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Gameplay_State_Damaged, "Gameplay.State.Damaged", "Target has recently taken damage.");
+}
+
 void UCollabHealthAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabHealthAttributeSet, MaxHealth, OldMaxHealth);

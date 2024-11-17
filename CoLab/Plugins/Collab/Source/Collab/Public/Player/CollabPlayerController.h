@@ -3,17 +3,35 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
 #include "GameFramework/PlayerController.h"
 #include "CollabPlayerController.generated.h"
 
+class UCollabAbilitySystemComponent;
+struct FGameplayTag;
+class UCollabInputConfig;
 /**
  * 
  */
 UCLASS()
-class COLLAB_API ACollabPlayerController : public APlayerController
+class COLLAB_API ACollabPlayerController : public APlayerController, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
+	UPROPERTY(EditDefaultsOnly)
+	TSoftObjectPtr<UCollabInputConfig> CollabInputConfig;
+	
+public:
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	UCollabAbilitySystemComponent* GetCollabAbilitySystemComponent() const;
+
 protected:
+	virtual void BeginPlay() override;
+	
 	virtual void AcknowledgePossession(APawn* NewPawn) override;
+
+	virtual void SetupInputComponent() override;
+
+	void AbilityInputPressed(FGameplayTag InputTag);
+	void AbilityInputReleased(FGameplayTag InputTag);
 };

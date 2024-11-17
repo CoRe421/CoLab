@@ -4,10 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
+#include "NativeGameplayTags.h"
 #include "GameplayAbilitySystem/Attributes/CollabAttributeSet.h"
 #include "CollabSpellcastAttributeSet.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FDynamicEvent_OnManaChanged, const float, NewMana, const float, OldMana);
+
+namespace CollabSpellcastGameplayTags
+{
+	COLLAB_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gameplay_State_Spellcast);
+}
 
 /**
  * 
@@ -42,4 +48,7 @@ public:
 
 	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
+private:
+	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const;
 };

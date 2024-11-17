@@ -26,18 +26,18 @@ class ACoLabCharacter : public ACollabPlayerCharacter
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Mesh, meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* Mesh1P;
-
+	
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FirstPersonCameraComponent;
-
-	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	UInputAction* JumpAction;
-
-	/** Move Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	UInputAction* MoveAction;
+	
+	// /** Jump Input Action */
+	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	// UInputAction* JumpAction;
+	//
+	// /** Move Input Action */
+	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	// UInputAction* MoveAction;
 	
 public:
 	ACoLabCharacter();
@@ -45,27 +45,27 @@ public:
 protected:
 	virtual void BeginPlay();
 
-public:
-		
-	/** Look Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* LookAction;
-	
-	/** Look Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* FireAction;
-
-protected:
-	/** Called for movement input */
-	void Move(const FInputActionValue& Value);
-
-	/** Called for looking input */
-	void Look(const FInputActionValue& Value);
-
-	/** Called for looking input */
-	UFUNCTION(BlueprintNativeEvent)
-	void TryFire(const FInputActionValue& Value);
-	void TryFire_Implementation(const FInputActionValue& Value);
+// public:
+// 		
+// 	/** Look Input Action */
+// 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+// 	class UInputAction* LookAction;
+// 	
+// 	/** Look Input Action */
+// 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+// 	class UInputAction* FireAction;
+//
+// protected:
+// 	/** Called for movement input */
+// 	void Move(const FInputActionValue& Value);
+//
+// 	/** Called for looking input */
+// 	void Look(const FInputActionValue& Value);
+//
+// 	/** Called for looking input */
+// 	UFUNCTION(BlueprintNativeEvent)
+// 	void TryFire(const FInputActionValue& Value);
+// 	void TryFire_Implementation(const FInputActionValue& Value);
 
 protected:
 	// APawn interface

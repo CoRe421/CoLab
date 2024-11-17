@@ -6,10 +6,16 @@
 #include "CollabCharacterBase.h"
 #include "CollabPlayerCharacter.generated.h"
 
+class UCollabHeroComponent;
+
 UCLASS()
 class COLLAB_API ACollabPlayerCharacter : public ACollabCharacterBase
 {
 	GENERATED_BODY()
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
+	TObjectPtr<UCollabHeroComponent> HeroComponent;
 
 public:
 	// Sets default values for this character's properties

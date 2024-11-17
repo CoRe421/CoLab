@@ -28,19 +28,19 @@ public:
 
 	// Class to instantiate for this pawn (should usually derive from ACollabPawn or ACollabCharacter).
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Pawn")
-	TSubclassOf<ACollabPlayerCharacter> PawnClass;
+	TSoftClassPtr<ACollabPlayerCharacter> PawnClass;
 
 	// Ability sets to grant to this pawn's ability system.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Abilities")
-	TArray<TObjectPtr<UCollabAbilitySet>> DefaultAbilitySets;
+	TArray<TSoftObjectPtr<UCollabAbilitySet>> DefaultAbilitySets;
 
 	// // What mapping of ability tags to use for actions taking by this pawn
 	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Abilities")
 	// TObjectPtr<UCollabAbilityTagRelationshipMapping> TagRelationshipMapping;
 
 	// Input configuration used by player controlled pawns to create input mappings and bind input actions.
-	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Input")
-	// TObjectPtr<UCollabInputConfig> InputConfig;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Input")
+	TSoftObjectPtr<UCollabInputConfig> InputConfig;
 
 	// // Default camera mode used by player controlled pawns.
 	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Camera")

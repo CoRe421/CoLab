@@ -6,6 +6,7 @@
 #include "GameFramework/GameMode.h"
 #include "CollabGameMode.generated.h"
 
+class UCollabGameData;
 class UCollabPawnData;
 /**
  * 
@@ -20,7 +21,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category=Gameplay)
 	TSoftObjectPtr<const UCollabPawnData> DefaultPawnData;
 	
+	UPROPERTY(EditDefaultsOnly, Category=Gameplay)
+	TSoftObjectPtr<const UCollabGameData> DefaultGameData;
+	
 public:
+	static const UCollabGameData* GetDefaultGameData(const AActor* WorldContext);
+	
 	UFUNCTION(BlueprintCallable, Category = "Collab|Pawn")
 	const UCollabPawnData* GetPawnDataForController(const AController* InController) const;
 

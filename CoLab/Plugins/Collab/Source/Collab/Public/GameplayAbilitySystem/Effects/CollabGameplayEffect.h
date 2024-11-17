@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Abstract)
 class COLLAB_API UCollabGameplayEffect : public UGameplayEffect
 {
 	GENERATED_BODY()

@@ -13,4 +13,8 @@ UCLASS()
 class COLLAB_API UCollabGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditDefaultsOnly)
+	FGameplayTag InputTag;
 };

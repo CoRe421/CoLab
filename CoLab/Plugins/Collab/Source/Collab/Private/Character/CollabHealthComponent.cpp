@@ -6,8 +6,11 @@
 #include "CollabGameplayTags.h"
 #include "CollabLog.h"
 #include "Character/CollabCharacterBase.h"
+#include "GameModes/CollabGameData.h"
+#include "GameModes/CollabGameMode.h"
 #include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
 #include "GameplayAbilitySystem/Attributes/CollabHealthAttributeSet.h"
+#include "GameplayAbilitySystem/Effects/CollabGameplayEffect.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -163,29 +166,7 @@ void UCollabHealthComponent::OnUnregister()
 void UCollabHealthComponent::HandleHealthChanged(AActor* DamageInstigator, AActor* DamageCauser,
 	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
 {
-	if (!AbilitySystemComponent.IsValid())
-	{
-		return;
-	}
-	// const FCollabAbilitySet_GameplayEffect& EffectToGrant = GrantedGameplayEffects[EffectIndex];
-	//
-	// if (!IsValid(EffectToGrant.GameplayEffect))
-	// {
-	// 	UE_LOG(LogCollab, Error, TEXT("GrantedGameplayEffects[%d] on ability set [%s] is not valid"), EffectIndex, *GetNameSafe(this));
-	// 	continue;
-	// }
-	//
-	// const UGameplayEffect* GameplayEffect = EffectToGrant.GameplayEffect->GetDefaultObject<UGameplayEffect>();
-	// const FGameplayEffectContextHandle EffectContext = CollabASC->MakeEffectContext();
-	// const FPredictionKey NewPredictionKey = FPredictionKey();
-	// bool HasAuthority = NewPredictionKey.IsValidForMorePrediction();
-	// CollabASC->GameplayEffectApplicationQueries;
-	const FActiveGameplayEffectHandle GameplayEffectHandle = AbilitySystemComponent->ApplyGameplayEffectToSelf(GameplayEffect, EffectToGrant.EffectLevel, EffectContext);
-
-	// if (OutGrantedHandles)
-	// {
-	// 	OutGrantedHandles->AddGameplayEffectHandle(GameplayEffectHandle);
-	// }
+	BroadcastDamaged();
 }
 
 
@@ -229,4 +210,59 @@ void UCollabHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 	}
 
 #endif // #if WITH_SERVER_CODE
+}
+
+void UCollabHealthComponent::BroadcastDamaged()
+{
+	if (!AbilitySystemComponent.IsValid())
+	{
+		return;
+	}
+
+	const AActor* Owner = GetOwner();
+	if (!IsValid(Owner))
+	{
+		return;
+	}
+
+	const UCollabGameData* GameData = ACollabGameMode::GetDefaultGameData(Owner);
+	if (!IsValid(GameData))
+	{
+		return;
+	}
+
+	const TMap<FGameplayTag, TSoftClassPtr<UCollabGameplayEffect>>& GlobalTagEffects = GameData->GetGlobalTagEffects();
+	const TSoftClassPtr<UCollabGameplayEffect>* DamagedEffectClass = GlobalTagEffects.Find(
+		CollabHealthGameplayTags::Gameplay_State_Damaged);
+	if (!DamagedEffectClass)
+	{
+		return;
+	}
+
+	const TSubclassOf<UCollabGameplayEffect> LoadedDamagedEffectClass = DamagedEffectClass->LoadSynchronous();
+	if (!IsValid(LoadedDamagedEffectClass))
+	{
+		return;
+	}
+
+	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(LoadedDamagedEffectClass, 1.0f, AbilitySystemComponent->MakeEffectContext());
+	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
+
+	if (!Spec)
+	{
+		UE_LOG(LogCollab, Error, TEXT("CollabHealthComponent: BroadcastDamaged failed for owner [%s]. Unable to make outgoing spec for [%s]."), *GetNameSafe(GetOwner()), *GetNameSafe(LoadedDamagedEffectClass));
+		return;
+	}
+
+	// Spec->AddDynamicAssetTag(TAG_Gameplay_DamageSelfDestruct);
+	//
+	// if (bFellOutOfWorld)
+	// {
+	// 	Spec->AddDynamicAssetTag(TAG_Gameplay_FellOutOfWorld);
+	// }
+	//
+	// const float DamageAmount = GetMaxHealth();
+	//
+	// Spec->SetSetByCallerMagnitude(LyraGameplayTags::SetByCaller_Damage, DamageAmount);
+	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec);
 }

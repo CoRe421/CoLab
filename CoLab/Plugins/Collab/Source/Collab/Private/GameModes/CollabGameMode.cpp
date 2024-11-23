@@ -38,9 +38,11 @@ const UCollabPawnData* ACollabGameMode::GetPawnDataForController(const AControll
 	// See if pawn data is already set on the player state
 	if (IsValid(InController))
 	{
-		if (const ACollabPlayerState* CollabPS = InController->GetPlayerState<ACollabPlayerState>())
+		const ACollabPlayerState* CollabPS = InController->GetPlayerState<ACollabPlayerState>();
+		if (IsValid(CollabPS))
 		{
-			if (const UCollabPawnData* PawnData = CollabPS->GetPawnData<UCollabPawnData>())
+			const UCollabPawnData* PawnData = CollabPS->GetPawnData<UCollabPawnData>();
+			if (IsValid(PawnData))
 			{
 				return PawnData;
 			}
@@ -74,21 +76,25 @@ APawn* ACollabGameMode::SpawnDefaultPawnAtTransform_Implementation(AController* 
 	SpawnInfo.ObjectFlags |= RF_Transient;	// Never save the default player pawns into a map.
 	SpawnInfo.bDeferConstruction = true;
 
-	if (UClass* PawnClass = GetDefaultPawnClassForController(NewPlayer))
+	UClass* PawnClass = GetDefaultPawnClassForController(NewPlayer);
+	if (IsValid(PawnClass))
 	{
-		if (APawn* SpawnedPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnInfo))
+		APawn* SpawnedPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnInfo);
+		if (IsValid(SpawnedPawn))
 		{
-			// if (UCollabPawnExtensionComponent* PawnExtComp = UCollabPawnExtensionComponent::FindPawnExtensionComponent(SpawnedPawn))
-			// {
-			// 	if (const UCollabPawnData* PawnData = GetPawnDataForController(NewPlayer))
-			// 	{
-			// 		PawnExtComp->SetPawnData(PawnData);
-			// 	}
-			// 	else
-			// 	{
-			// 		UE_LOG(LogCollab, Error, TEXT("Game mode was unable to set PawnData on the spawned pawn [%s]."), *GetNameSafe(SpawnedPawn));
-			// 	}
-			// }
+			UCollabPawnExtensionComponent* PawnExtComp = UCollabPawnExtensionComponent::FindPawnExtensionComponent(SpawnedPawn);
+			if (IsValid(PawnExtComp))
+			{
+				const UCollabPawnData* PawnData = GetPawnDataForController(NewPlayer);
+				if (IsValid(PawnData))
+				{
+					PawnExtComp->SetPawnData(PawnData);
+				}
+				else
+				{
+					UE_LOG(LogCollab, Error, TEXT("Game mode was unable to set PawnData on the spawned pawn [%s]."), *GetNameSafe(SpawnedPawn));
+				}
+			}
 
 			SpawnedPawn->FinishSpawning(SpawnTransform);
 
@@ -105,26 +111,55 @@ APawn* ACollabGameMode::SpawnDefaultPawnAtTransform_Implementation(AController* 
 	}
 
 	return nullptr;
+} 
+
+void ACollabGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+}
+
+void ACollabGameMode::InitGameState()
+{
+	Super::InitGameState();
+}
+
+bool ACollabGameMode::PlayerCanRestart_Implementation(APlayerController* Player)
+{
+	return Super::PlayerCanRestart_Implementation(Player);
 }
 
 void ACollabGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
 	Super::InitGame(MapName, Options, ErrorMessage);
+	// GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ThisClass::RestartPlayers, 2.f);
+}
 
+void ACollabGameMode::StartPlay()
+{
+	Super::StartPlay();
+	
 	// GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::RestartPlayers);
 }
 
-void ACollabGameMode::RestartPlayers()
+bool ACollabGameMode::TryRestartPlayer(APlayerController* Player)
 {
+	if (!PlayerCanRestart(Player))
+	{
+		return false;
+	}
+
+	RestartPlayer(Player);
+	return true;
+}
+
+void ACollabGameMode::RestartPlayers()
+{	
 	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
 	{
 		APlayerController* PC = Cast<APlayerController>(*Iterator);
 		if ((PC != nullptr) && (PC->GetPawn() == nullptr))
 		{
-			if (PlayerCanRestart(PC))
-			{
-				RestartPlayer(PC);
-			}
+			TryRestartPlayer(PC);
 		}
 	}
 }

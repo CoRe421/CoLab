@@ -6,6 +6,7 @@
 #include "CollabGameplayTags.h"
 #include "CollabLog.h"
 #include "Character/CollabCharacterBase.h"
+#include "Character/CollabPawnExtensionComponent.h"
 #include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
 

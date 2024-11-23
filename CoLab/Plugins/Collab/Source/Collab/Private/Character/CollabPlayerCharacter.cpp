@@ -17,7 +17,7 @@ ACollabPlayerCharacter::ACollabPlayerCharacter()
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	
 	HeroComponent = CreateDefaultSubobject<UCollabHeroComponent>(TEXT("HeroComponent"));
 }
 
@@ -30,28 +30,48 @@ void ACollabPlayerCharacter::BeginPlay()
 void ACollabPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
+	
+	PawnExtensionComponent->HandleControllerChanged();
+}
 
-	if (HasAuthority())
-	{
-		InitAbilitySystemComponent();
-	}
+void ACollabPlayerCharacter::UnPossessed()
+{
+	Super::UnPossessed();
+	
+	PawnExtensionComponent->HandleControllerChanged();
 }
 
 void ACollabPlayerCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 	
-	InitAbilitySystemComponent();
+	PawnExtensionComponent->HandlePlayerStateReplicated();
+}
+
+void ACollabPlayerCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+	
+	PawnExtensionComponent->HandleControllerChanged();
+}
+
+void ACollabPlayerCharacter::OnAbilitySystemInitialized(UCollabAbilitySystemComponent* CollabASC)
+{	
+	OnAbilitySystemInit.Broadcast(CollabASC);
+	
+	// This needs to be called AFTER delegate so that everything will be initialized for this - CR
+	SetupAbilitySystemComponentBindings();
 }
 
 void ACollabPlayerCharacter::SetupAbilitySystemComponentBindings_Implementation()
 {
-	if (!AbilitySystemComponent.IsValid())
+	UCollabAbilitySystemComponent* CollabASC = GetCollabAbilitySystemComponent();
+	if (!IsValid(CollabASC))
 	{
 		return;
 	}
 
-	const TArray<UAttributeSet*>& AttributeSets = AbilitySystemComponent->GetSpawnedAttributes();
+	const TArray<UAttributeSet*>& AttributeSets = CollabASC->GetSpawnedAttributes();
 	for (UAttributeSet* AttributeSet : AttributeSets)
 	{
 		UCollabAttributeSet* CollabAttribute = Cast<UCollabAttributeSet>(AttributeSet);
@@ -60,7 +80,7 @@ void ACollabPlayerCharacter::SetupAbilitySystemComponentBindings_Implementation(
 			continue;
 		}
 
-		CollabAttribute->SetupBindings(AbilitySystemComponent.Get());
+		CollabAttribute->SetupBindings(CollabASC);
 	}
 }
 
@@ -74,35 +94,6 @@ void ACollabPlayerCharacter::Tick(float DeltaTime)
 void ACollabPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	
-	// Placed here to be sure input component is valid - CR
-	HeroComponent->InitializeHeroComponent();
-}
 
-void ACollabPlayerCharacter::InitAbilitySystemComponent()
-{
-	ACollabPlayerState* CollabPlayerState = GetPlayerState<ACollabPlayerState>();
-	if (!IsValid(CollabPlayerState))
-	{
-		return;
-	}
-
-	//UCollabPawnExtensionComponent* PawnExtComp = UCollabPawnExtensionComponent::FindPawnExtensionComponent(this)
-	AbilitySystemComponent = CollabPlayerState->GetCollabAbilitySystemComponent();
-	if (AbilitySystemComponent.IsValid())
-	{
-		// The player state holds the persistent data for this player (state that persists across deaths and multiple pawns).
-		// The ability system component and attribute sets live on the player state.
-		AbilitySystemComponent->InitAbilityActorInfo(CollabPlayerState, this);
-
-		if (HasAuthority())
-		{
-			CollabPlayerState->ApplyDefaultGameplayEffects();
-		}
-		
-		SetupAbilitySystemComponentBindings();
-
-		// Broadcast ability system initialized here for death/health component to bind to
-		OnAbilitySystemInit.Broadcast(AbilitySystemComponent.Get());
-	}
+	PawnExtensionComponent->SetupPlayerInputComponent();
 }

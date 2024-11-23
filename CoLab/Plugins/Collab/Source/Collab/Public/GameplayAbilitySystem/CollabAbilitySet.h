@@ -129,7 +129,7 @@ public:
 	// The returned handles can be used later to take away anything that was granted.
 	void GrantToAbilitySystem(UCollabAbilitySystemComponent* CollabASC, FCollabAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject = nullptr) const;
 
-	void ApplyGameplayEffects(UCollabAbilitySystemComponent* CollabASC, FCollabAbilitySet_GrantedHandles* OutGrantedHandles) const;
+	void ApplySpawnGameplayEffects(UCollabAbilitySystemComponent* CollabASC, FCollabAbilitySet_GrantedHandles* OutGrantedHandles) const;
 
 protected:
 
@@ -137,11 +137,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities", meta=(TitleProperty=Ability))
 	TArray<FCollabAbilitySet_GameplayAbility> GrantedGameplayAbilities;
 
-	// Gameplay effects to grant when this ability set is granted.
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects", meta=(TitleProperty=GameplayEffect))
-	TArray<FCollabAbilitySet_GameplayEffect> GrantedGameplayEffects;
-
 	// Attribute sets to grant when this ability set is granted.
 	UPROPERTY(EditDefaultsOnly, Category = "Attribute Sets", meta=(TitleProperty=AttributeSet))
 	TArray<FCollabAbilitySet_AttributeSet> GrantedAttributes;
+
+	// Gameplay effects to grant when this ability set is granted.
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects", meta=(TitleProperty=GameplayEffect))
+	TArray<FCollabAbilitySet_GameplayEffect> StartupGameplayEffects;
+	// Gameplay effects to grant when this ability set is granted.
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects", meta=(TitleProperty=GameplayEffect))
+	TArray<FCollabAbilitySet_GameplayEffect> SpawnGameplayEffects;
+
+private:
+	void ApplyGameplayEffects_Internal(UCollabAbilitySystemComponent* CollabASC, FCollabAbilitySet_GrantedHandles* OutGrantedHandles, const TArray<FCollabAbilitySet_GameplayEffect>& Effects) const;
 };

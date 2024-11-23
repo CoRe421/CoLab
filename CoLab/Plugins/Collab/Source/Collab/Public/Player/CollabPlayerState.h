@@ -21,7 +21,7 @@ class COLLAB_API ACollabPlayerState : public APlayerState, public IAbilitySystem
 {
 	GENERATED_BODY()
 
-	friend class ACollabPlayerCharacter;
+	// friend class ACollabPlayerCharacter;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
@@ -48,11 +48,13 @@ public:
 
 	void SetPawnData(const UCollabPawnData* InPawnData);
 
-private:
-	// Intended to be called solely by "CollabPlayerCharacter" - CR
-	void ApplyDefaultGameplayEffects();
+// private:
+// 	// Intended to be called solely by "CollabPlayerCharacter" - CR
+// 	void ApplyDefaultGameplayEffects();
 
 protected:
 	UFUNCTION()
 	void OnRep_PawnData();
+
+	virtual void ClientInitialize(AController* C) override;
 };

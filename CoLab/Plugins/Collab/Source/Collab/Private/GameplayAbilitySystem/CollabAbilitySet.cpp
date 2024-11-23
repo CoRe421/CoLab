@@ -128,35 +128,17 @@ void UCollabAbilitySet::GrantToAbilitySystem(UCollabAbilitySystemComponent* Coll
 		}
 	}
 
-	// Moved to "ApplyDefaultGameplayEffects" - CR
-	// 
-	// Grant the gameplay effects.
-	// for (int32 EffectIndex = 0; EffectIndex < GrantedGameplayEffects.Num(); ++EffectIndex)
-	// {
-	// 	const FCollabAbilitySet_GameplayEffect& EffectToGrant = GrantedGameplayEffects[EffectIndex];
-	//
-	// 	if (!IsValid(EffectToGrant.GameplayEffect))
-	// 	{
-	// 		UE_LOG(LogCollab, Error, TEXT("GrantedGameplayEffects[%d] on ability set [%s] is not valid"), EffectIndex, *GetNameSafe(this));
-	// 		continue;
-	// 	}
-	//
-	// 	const UGameplayEffect* GameplayEffect = EffectToGrant.GameplayEffect->GetDefaultObject<UGameplayEffect>();
-	// 	const FGameplayEffectContextHandle EffectContext = CollabASC->MakeEffectContext();
-	// 	const FPredictionKey NewPredictionKey = FPredictionKey();
-	// 	bool HasAuthority = NewPredictionKey.IsValidForMorePrediction();
-	// 	CollabASC->GameplayEffectApplicationQueries;
-	// 	const FActiveGameplayEffectHandle GameplayEffectHandle = CollabASC->ApplyGameplayEffectToSelf(GameplayEffect, EffectToGrant.EffectLevel, EffectContext);
-	//
-	// 	if (OutGrantedHandles)
-	// 	{
-	// 		OutGrantedHandles->AddGameplayEffectHandle(GameplayEffectHandle);
-	// 	}
-	// }
+	ApplyGameplayEffects_Internal(CollabASC, OutGrantedHandles, StartupGameplayEffects);
 }
 
-void UCollabAbilitySet::ApplyGameplayEffects(UCollabAbilitySystemComponent* CollabASC,
+void UCollabAbilitySet::ApplySpawnGameplayEffects(UCollabAbilitySystemComponent* CollabASC,
 	FCollabAbilitySet_GrantedHandles* OutGrantedHandles) const
+{
+	ApplyGameplayEffects_Internal(CollabASC, OutGrantedHandles, SpawnGameplayEffects);
+}
+
+void UCollabAbilitySet::ApplyGameplayEffects_Internal(UCollabAbilitySystemComponent* CollabASC,
+	FCollabAbilitySet_GrantedHandles* OutGrantedHandles, const TArray<FCollabAbilitySet_GameplayEffect>& Effects) const
 {
 	check(CollabASC);
 
@@ -167,9 +149,9 @@ void UCollabAbilitySet::ApplyGameplayEffects(UCollabAbilitySystemComponent* Coll
 	}
 
 	// Grant the gameplay effects.
-	for (int32 EffectIndex = 0; EffectIndex < GrantedGameplayEffects.Num(); ++EffectIndex)
+	for (int32 EffectIndex = 0; EffectIndex < Effects.Num(); ++EffectIndex)
 	{
-		const FCollabAbilitySet_GameplayEffect& EffectToGrant = GrantedGameplayEffects[EffectIndex];
+		const FCollabAbilitySet_GameplayEffect& EffectToGrant = Effects[EffectIndex];
 
 		if (!IsValid(EffectToGrant.GameplayEffect))
 		{

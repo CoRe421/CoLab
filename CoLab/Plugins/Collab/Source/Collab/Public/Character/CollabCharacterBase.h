@@ -4,34 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "CollabPawnExtensionComponent.h"
 #include "GameFramework/Character.h"
 #include "CollabCharacterBase.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDynamicEvent_OnAbilitySystemInit, UCollabAbilitySystemComponent*, ASC);
 
 class UCollabAbilitySystemComponent;
-class UCollabPawnExtensionComponent;
 
 UCLASS(Abstract)
 class COLLAB_API ACollabCharacterBase : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
-protected:
-	TWeakObjectPtr<UCollabAbilitySystemComponent> AbilitySystemComponent;
-
 public:
 	UPROPERTY(BlueprintAssignable, BlueprintReadOnly)
 	FDynamicEvent_OnAbilitySystemInit OnAbilitySystemInit;
-
-private:
 	
-	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collab|Character", Meta = (AllowPrivateAccess = "true"))
-	// TObjectPtr<UCollabDeathComponent> DeathComponent;
-
-	// protected:
-	// 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = "true"))
-	// 	TObjectPtr<UCollabPawnExtensionComponent> PawnExtComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
+	TObjectPtr<UCollabPawnExtensionComponent> PawnExtensionComponent;
 
 public:
 	// Sets default values for this pawn's properties
@@ -40,6 +30,9 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	virtual void OnAbilitySystemInitialized(UCollabAbilitySystemComponent* CollabASC) {};
 
 public:
 	// Called every frame
@@ -69,5 +62,4 @@ protected:
 	void OnDestroyCharacter();
 
 	void UninitAndDestroy();
-	void UninitializeAbilitySystem();
 };

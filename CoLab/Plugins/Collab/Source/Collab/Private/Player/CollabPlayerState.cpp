@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystemInterface.h"
 #include "EnhancedInputSubsystems.h"
 #include "Character/CollabPawnData.h"
+#include "Character/CollabPawnExtensionComponent.h"
 #include "GameModes/CollabGameMode.h"
 #include "GameplayAbilitySystem/CollabAbilitySet.h"
 #include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
@@ -84,29 +85,39 @@ void ACollabPlayerState::SetPawnData(const UCollabPawnData* InPawnData)
 	ForceNetUpdate();
 }
 
-void ACollabPlayerState::ApplyDefaultGameplayEffects()
-{
-	if (!HasAuthority())
-	{
-		return;
-	}
-	
-	for (const TSoftObjectPtr<UCollabAbilitySet> AbilitySet : PawnData->DefaultAbilitySets)
-	{
-		const UCollabAbilitySet* LoadedAbilitySet = AbilitySet.LoadSynchronous();
-		if (!IsValid(LoadedAbilitySet))
-		{
-			continue;
-		}
-		
-		AbilitySet->ApplyGameplayEffects(AbilitySystemComponent, nullptr);
-	}
-	
-	ForceNetUpdate();
-}
+// void ACollabPlayerState::ApplyDefaultGameplayEffects()
+// {
+// 	if (!HasAuthority())
+// 	{
+// 		return;
+// 	}
+// 	
+// 	for (const TSoftObjectPtr<UCollabAbilitySet> AbilitySet : PawnData->DefaultAbilitySets)
+// 	{
+// 		const UCollabAbilitySet* LoadedAbilitySet = AbilitySet.LoadSynchronous();
+// 		if (!IsValid(LoadedAbilitySet))
+// 		{
+// 			continue;
+// 		}
+// 		
+// 		AbilitySet->ApplyGameplayEffects(AbilitySystemComponent, nullptr);
+// 	}
+// 	
+// 	ForceNetUpdate();
+// }
 
 void ACollabPlayerState::OnRep_PawnData()
 {
+}
+
+void ACollabPlayerState::ClientInitialize(AController* C)
+{
+	Super::ClientInitialize(C);
+
+	if (UCollabPawnExtensionComponent* PawnExtComp = UCollabPawnExtensionComponent::FindPawnExtensionComponent(GetPawn()))
+	{
+		PawnExtComp->CheckDefaultInitialization();
+	}
 }
 
 void ACollabPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

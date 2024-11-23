@@ -6,6 +6,7 @@
 #include "CollabCharacterBase.h"
 #include "CollabPlayerCharacter.generated.h"
 
+class UCollabPawnExtensionComponent;
 class UCollabHeroComponent;
 
 UCLASS()
@@ -27,7 +28,11 @@ protected:
 
 
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void UnPossessed() override;
 	virtual void OnRep_PlayerState() override;
+	virtual void OnRep_Controller() override;
+
+	virtual void OnAbilitySystemInitialized(UCollabAbilitySystemComponent* CollabASC) override;
 
 	UFUNCTION(BlueprintNativeEvent)
 	void SetupAbilitySystemComponentBindings();
@@ -39,7 +44,7 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-private:
-	void InitAbilitySystemComponent();
+	
+// private:
+// 	void InitAbilitySystemComponent();
 };

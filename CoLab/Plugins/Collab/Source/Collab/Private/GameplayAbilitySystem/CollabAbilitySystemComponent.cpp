@@ -52,8 +52,9 @@ void UCollabAbilitySystemComponent::AbilityInputPressed(const FGameplayTag& Inpu
 		{
 			return;
 		}
-		
-		if (!Spec.IsActive())
+
+		const EGameplayAbilityInstancingPolicy::Type InstancePolicy = Spec.Ability->GetInstancingPolicy();
+		if (!Spec.IsActive() || InstancePolicy == EGameplayAbilityInstancingPolicy::InstancedPerExecution)
 		{
 			TryActivateAbility(Spec.Handle);
 		}

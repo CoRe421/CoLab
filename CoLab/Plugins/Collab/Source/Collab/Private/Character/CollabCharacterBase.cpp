@@ -24,6 +24,11 @@ ACollabCharacterBase::ACollabCharacterBase()
 	// DeathComponent = CreateDefaultSubobject<UCollabDeathComponent>(TEXT("DeathComponent"));
 	// DeathComponent->OnDeathStarted.AddDynamic(this, &ThisClass::OnDeathStarted);
 	// DeathComponent->OnDeathFinished.AddDynamic(this, &ThisClass::OnDeathFinished);
+
+	
+
+	PawnExtensionComponent = CreateDefaultSubobject<UCollabPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
+	PawnExtensionComponent->OnAbilitySystemInit.AddUniqueDynamic(this, &ThisClass::OnAbilitySystemInitialized);
 }
 
 // Called when the game starts or when spawned
@@ -51,7 +56,12 @@ UCollabAbilitySystemComponent* ACollabCharacterBase::GetCollabAbilitySystemCompo
 
 UAbilitySystemComponent* ACollabCharacterBase::GetAbilitySystemComponent() const
 {
-	return AbilitySystemComponent.Get();
+	if (!IsValid(PawnExtensionComponent))
+	{
+		return nullptr;
+	}
+
+	return PawnExtensionComponent->GetCollabAbilitySystemComponent();
 }
 
 void ACollabCharacterBase::BeginDestroyCharacter(const bool bDeffered /*= false*/)
@@ -101,41 +111,16 @@ void ACollabCharacterBase::UninitAndDestroy()
 		SetLifeSpan(0.1f);
 	}
 
+
 	// Uninitialize the ASC if we're still the avatar actor (otherwise another pawn already did it when they became the avatar actor)
-	UninitializeAbilitySystem();
+	UCollabAbilitySystemComponent* CollabASC = GetCollabAbilitySystemComponent();
+	if (IsValid(CollabASC))
+	{
+		if (CollabASC->GetAvatarActor() == this)
+		{
+			PawnExtensionComponent->UninitializeAbilitySystem();
+		}
+	}
 
 	SetActorHiddenInGame(true);
-}
-
-void ACollabCharacterBase::UninitializeAbilitySystem()
-{
-	if (!AbilitySystemComponent.IsValid())
-	{
-		return;
-	}
-
-	// Uninitialize the ASC if we're still the avatar actor (otherwise another pawn already did it when they became the avatar actor)
-	if (AbilitySystemComponent->GetAvatarActor() == this)
-	{
-		FGameplayTagContainer AbilityTypesToIgnore;
-		AbilityTypesToIgnore.AddTag(CollabGameplayTags::Ability_Behavior_SurvivesDeath);
-
-		AbilitySystemComponent->CancelAbilities(nullptr, &AbilityTypesToIgnore);
-		// AbilitySystemComponent->ClearAbilityInput();
-		AbilitySystemComponent->RemoveAllGameplayCues();
-
-		if (AbilitySystemComponent->GetOwnerActor() != nullptr)
-		{
-			AbilitySystemComponent->SetAvatarActor(nullptr);
-		}
-		else
-		{
-			// If the ASC doesn't have a valid owner, we need to clear *all* actor info, not just the avatar pairing
-			AbilitySystemComponent->ClearActorInfo();
-		}
-
-		// OnAbilitySystemUninitialized.Broadcast();
-	}
-
-	AbilitySystemComponent = nullptr;
 }

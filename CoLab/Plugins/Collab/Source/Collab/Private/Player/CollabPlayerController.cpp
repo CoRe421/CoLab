@@ -35,21 +35,6 @@ void ACollabPlayerController::AcknowledgePossession(APawn* NewPawn)
 	Super::AcknowledgePossession(NewPawn);
 }
 
-void ACollabPlayerController::SetupInputComponent()
-{
-	Super::SetupInputComponent();
-
-	UCollabInputComponent* CollabInputComponent = Cast<UCollabInputComponent>(InputComponent);
-	if (IsValid(CollabInputComponent))
-	{
-		UCollabInputConfig* InputConfig = CollabInputConfig.LoadSynchronous();
-		if (IsValid(InputConfig))
-		{
-			CollabInputComponent->BindAbilityActions(InputConfig, this, &ThisClass::AbilityInputPressed, &ThisClass::AbilityInputReleased);
-		}
-	}
-}
-
 void ACollabPlayerController::AbilityInputPressed(FGameplayTag InputTag)
 {
 	UCollabAbilitySystemComponent* CollabAbilitySystemComponent = GetCollabAbilitySystemComponent();

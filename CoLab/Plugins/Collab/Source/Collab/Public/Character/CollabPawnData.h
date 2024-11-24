@@ -6,6 +6,24 @@
 #include "Engine/DataAsset.h"
 #include "CollabPawnData.generated.h"
 
+class UInputMappingContext;
+// This may be moved somewhere else
+USTRUCT(BlueprintType)
+struct FInputMappingContextAndPriority
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, Category="Input", meta=(AssetBundles="Client,Server"))
+	TSoftObjectPtr<UInputMappingContext> InputMapping;
+
+	// Higher priority input mappings will be prioritized over mappings with a lower priority.
+	UPROPERTY(EditAnywhere, Category="Input")
+	int32 Priority = 0;
+	
+	/** If true, then this mapping context will be registered with the settings when this game feature action is registered. */
+	UPROPERTY(EditAnywhere, Category="Input")
+	bool bRegisterWithSettings = true;
+};
 
 class UCollabInputConfig;
 class UCollabAbilitySet;
@@ -40,7 +58,10 @@ public:
 
 	// Input configuration used by player controlled pawns to create input mappings and bind input actions.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Input")
-	TSoftObjectPtr<UCollabInputConfig> InputConfig;
+	TArray<TSoftObjectPtr<UCollabInputConfig>> DefaultInputConfigs;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Input")
+	TArray<FInputMappingContextAndPriority> DefaultInputMappings;
 
 	// // Default camera mode used by player controlled pawns.
 	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Camera")

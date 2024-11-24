@@ -7,8 +7,6 @@
 #include "Player/CollabPlayerController.h"
 #include "CoLabPlayerController.generated.h"
 
-class UInputMappingContext;
-
 /**
  *
  */
@@ -16,12 +14,6 @@ UCLASS()
 class COLAB_API ACoLabPlayerController : public ACollabPlayerController
 {
 	GENERATED_BODY()
-	
-protected:
-
-	/** Input Mapping Context to be used for player input */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputMappingContext* InputMappingContext;
 
 	// Begin Actor interface
 protected:

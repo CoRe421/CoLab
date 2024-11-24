@@ -3,6 +3,7 @@
 
 #include "Character/CollabHeroComponent.h"
 
+#include "AsyncTreeDifferences.h"
 #include "CollabGameplayTags.h"
 #include "CollabLog.h"
 #include "EnhancedInputSubsystems.h"
@@ -269,30 +270,13 @@ void UCollabHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputCom
 		const UCollabPawnData* PawnData = PawnExtComp->GetPawnData<UCollabPawnData>();
 		if (IsValid(PawnData))
 		{
-			UCollabInputConfig* InputConfig = PawnData->InputConfig.LoadSynchronous();
-			if (IsValid(InputConfig))
+			for (const TSoftObjectPtr<UCollabInputConfig>& InputConfig : PawnData->DefaultInputConfigs)
 			{
-				for (const FInputMappingContextAndPriority& Mapping : DefaultInputMappings)
+				UCollabInputConfig* LoadedInputConfig = InputConfig.LoadSynchronous();
+				if (!IsValid(LoadedInputConfig))
 				{
-					UInputMappingContext* IMC = Mapping.InputMapping.LoadSynchronous();
-					if (IsValid(IMC))
-					{
-						if (Mapping.bRegisterWithSettings)
-						{
-							UEnhancedInputUserSettings* Settings = Subsystem->GetUserSettings();
-							if (IsValid(Settings))
-							{
-								Settings->RegisterInputMappingContext(IMC);
-							}
-							
-							FModifyContextOptions Options = {};
-							Options.bIgnoreAllPressedKeysUntilRelease = false;
-							// Actually add the config to the local player							
-							Subsystem->AddMappingContext(IMC, Mapping.Priority, Options);
-						}
-					}
+					continue;
 				}
-
 				// The Collab Input Component has some additional functions to map Gameplay Tags to an Input Action.
 				// If you want this functionality but still want to change your input component class, make it a subclass
 				// of the UCollabInputComponent or modify this component accordingly.
@@ -300,20 +284,43 @@ void UCollabHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputCom
 				if (ensureMsgf(CollabIC, TEXT("Unexpected Input Component class! The Gameplay Abilities will not be bound to their inputs. Change the input component to UCollabInputComponent or a subclass of it.")))
 				{
 					// Add the key mappings that may have been set by the player
-					CollabIC->AddInputMappings(InputConfig, Subsystem);
+					CollabIC->AddInputMappings(LoadedInputConfig, Subsystem);
 
 					// This is where we actually bind and input action to a gameplay tag, which means that Gameplay Ability Blueprints will
 					// be triggered directly by these input actions Triggered events. 
 					TArray<uint32> BindHandles;
-					CollabIC->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed, &ThisClass::Input_AbilityInputTagReleased);
+					CollabIC->BindAbilityActions(LoadedInputConfig, this, &ThisClass::Input_AbilityInputTagPressed, &ThisClass::Input_AbilityInputTagReleased);
 
-					CollabIC->BindNativeAction(InputConfig, CollabGameplayTags::InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
-					CollabIC->BindNativeAction(InputConfig, CollabGameplayTags::InputTag_Jump, ETriggerEvent::Triggered, this, &ThisClass::Input_Jump, /*bLogIfNotFound=*/ false);
-					CollabIC->BindNativeAction(InputConfig, CollabGameplayTags::InputTag_Jump, ETriggerEvent::Canceled, this, &ThisClass::Input_StopJumping, /*bLogIfNotFound=*/ false);
-					CollabIC->BindNativeAction(InputConfig, CollabGameplayTags::InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
-					CollabIC->BindNativeAction(InputConfig, CollabGameplayTags::InputTag_Look_Stick, ETriggerEvent::Triggered, this, &ThisClass::Input_LookStick, /*bLogIfNotFound=*/ false);
+					CollabIC->BindNativeAction(LoadedInputConfig, CollabGameplayTags::InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
+					CollabIC->BindNativeAction(LoadedInputConfig, CollabGameplayTags::InputTag_Jump, ETriggerEvent::Triggered, this, &ThisClass::Input_Jump, /*bLogIfNotFound=*/ false);
+					CollabIC->BindNativeAction(LoadedInputConfig, CollabGameplayTags::InputTag_Jump, ETriggerEvent::Canceled, this, &ThisClass::Input_StopJumping, /*bLogIfNotFound=*/ false);
+					CollabIC->BindNativeAction(LoadedInputConfig, CollabGameplayTags::InputTag_Look_Mouse, ETriggerEvent::Triggered, this, &ThisClass::Input_LookMouse, /*bLogIfNotFound=*/ false);
+					CollabIC->BindNativeAction(LoadedInputConfig, CollabGameplayTags::InputTag_Look_Stick, ETriggerEvent::Triggered, this, &ThisClass::Input_LookStick, /*bLogIfNotFound=*/ false);
 					// CollabIC->BindNativeAction(InputConfig, CollabGameplayTags::InputTag_Crouch, ETriggerEvent::Triggered, this, &ThisClass::Input_Crouch, /*bLogIfNotFound=*/ false);
 					// CollabIC->BindNativeAction(InputConfig, CollabGameplayTags::InputTag_AutoRun, ETriggerEvent::Triggered, this, &ThisClass::Input_AutoRun, /*bLogIfNotFound=*/ false);
+				}
+			}
+			
+			for (const FInputMappingContextAndPriority& Mapping : PawnData->DefaultInputMappings)
+			{
+				UInputMappingContext* IMC = Mapping.InputMapping.LoadSynchronous();
+				if (!IsValid(IMC))
+				{
+					continue;
+				}
+				
+				if (Mapping.bRegisterWithSettings)
+				{
+					UEnhancedInputUserSettings* Settings = Subsystem->GetUserSettings();
+					if (IsValid(Settings))
+					{
+						Settings->RegisterInputMappingContext(IMC);
+					}
+							
+					FModifyContextOptions Options = {};
+					Options.bIgnoreAllPressedKeysUntilRelease = false;
+					// Actually add the config to the local player							
+					Subsystem->AddMappingContext(IMC, Mapping.Priority, Options);
 				}
 			}
 		}

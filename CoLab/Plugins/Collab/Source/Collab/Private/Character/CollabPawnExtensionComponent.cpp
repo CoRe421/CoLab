@@ -9,6 +9,7 @@
 #include "Character/CollabPawnData.h"
 #include "Components/GameFrameworkComponentManager.h"
 #include "GameplayAbilitySystem/CollabAbilitySet.h"
+#include "GameplayAbilitySystem/Effects/CollabGameplayEffect.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -241,15 +242,22 @@ void UCollabPawnExtensionComponent::InitializeAbilitySystem(UCollabAbilitySystem
 	{
 		if (IsValid(PawnData))
 		{
-			for (const auto& AbilitySet : PawnData->DefaultAbilitySets)
+			for (const FCollabAbilitySet_GameplayEffect& SpawnEffect : PawnData->SpawnEffects)
 			{
-				const UCollabAbilitySet* LoadedAbilitySet = AbilitySet.LoadSynchronous();
-				if (!IsValid(LoadedAbilitySet))
+				UClass* LoadedSpawnEffect = SpawnEffect.GameplayEffect.LoadSynchronous();
+				if (!IsValid(LoadedSpawnEffect) || !LoadedSpawnEffect->IsChildOf(UCollabGameplayEffect::StaticClass()))
 				{
 					continue;
 				}
-				
-				AbilitySet->ApplySpawnGameplayEffects(AbilitySystemComponent.Get(), nullptr);
+
+				FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+				EffectContext.AddSourceObject(AbilitySystemComponent->GetAvatarActor());
+
+				FGameplayEffectSpecHandle EffectSpecHandle = AbilitySystemComponent->MakeOutgoingSpec(LoadedSpawnEffect, SpawnEffect.EffectLevel, EffectContext);
+				if (EffectSpecHandle.IsValid())
+				{
+					FActiveGameplayEffectHandle GameplayEffectHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
+				}
 			}
 		}
 	}

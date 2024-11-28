@@ -80,7 +80,7 @@ void ACollabPlayerCharacter::SetupAbilitySystemComponentBindings_Implementation(
 			continue;
 		}
 
-		CollabAttribute->SetupBindings(CollabASC);
+		// CollabAttribute->SetupBindings(CollabASC);
 	}
 }
 

@@ -8,6 +8,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Character/CollabPawnExtensionComponent.h"
 #include "GameplayEffectTypes.h"
+#include "Character/CollabAttributeComponent.h"
 #include "Character/CollabDeathComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
@@ -29,6 +30,8 @@ ACollabCharacterBase::ACollabCharacterBase()
 
 	PawnExtensionComponent = CreateDefaultSubobject<UCollabPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
 	PawnExtensionComponent->OnAbilitySystemInit.AddUniqueDynamic(this, &ThisClass::OnAbilitySystemInitialized);
+	
+	AttributeComponent = CreateDefaultSubobject<UCollabAttributeComponent>(TEXT("AttributeComponent"));
 }
 
 // Called when the game starts or when spawned

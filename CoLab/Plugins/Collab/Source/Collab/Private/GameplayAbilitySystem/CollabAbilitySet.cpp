@@ -94,8 +94,8 @@ void UCollabAbilitySet::GrantToAbilitySystem(UCollabAbilitySystemComponent* Coll
 			continue;
 		}
 	
-		UAttributeSet* NewSet = NewObject<UAttributeSet>(CollabASC->GetOwner(), SetToGrant.AttributeSet);
-		CollabASC->AddAttributeSetSubobject(NewSet);
+		UCollabAttributeSet* NewSet = NewObject<UCollabAttributeSet>(CollabASC->GetOwner(), SetToGrant.AttributeSet);
+		CollabASC->GiveCharacterAttributeSet(NewSet);
 	
 		if (OutGrantedHandles)
 		{
@@ -128,32 +128,12 @@ void UCollabAbilitySet::GrantToAbilitySystem(UCollabAbilitySystemComponent* Coll
 		}
 	}
 
-	ApplyGameplayEffects_Internal(CollabASC, OutGrantedHandles, StartupGameplayEffects);
-}
-
-void UCollabAbilitySet::ApplySpawnGameplayEffects(UCollabAbilitySystemComponent* CollabASC,
-	FCollabAbilitySet_GrantedHandles* OutGrantedHandles) const
-{
-	ApplyGameplayEffects_Internal(CollabASC, OutGrantedHandles, SpawnGameplayEffects);
-}
-
-void UCollabAbilitySet::ApplyGameplayEffects_Internal(UCollabAbilitySystemComponent* CollabASC,
-	FCollabAbilitySet_GrantedHandles* OutGrantedHandles, const TArray<FCollabAbilitySet_GameplayEffect>& Effects) const
-{
-	check(CollabASC);
-
-	if (!CollabASC->IsOwnerActorAuthoritative())
-	{
-		// Must be authoritative to give or take ability sets.
-		return;
-	}
-
 	// Grant the gameplay effects.
-	for (int32 EffectIndex = 0; EffectIndex < Effects.Num(); ++EffectIndex)
+	for (int32 EffectIndex = 0; EffectIndex < GameplayEffects.Num(); ++EffectIndex)
 	{
-		const FCollabAbilitySet_GameplayEffect& EffectToGrant = Effects[EffectIndex];
-
-		if (!IsValid(EffectToGrant.GameplayEffect))
+		const FCollabAbilitySet_GameplayEffect& EffectToGrant = GameplayEffects[EffectIndex];
+		UClass* LoadedEffect = EffectToGrant.GameplayEffect.LoadSynchronous();
+		if (!IsValid(LoadedEffect) || !LoadedEffect->IsChildOf(UCollabGameplayEffect::StaticClass()))
 		{
 			UE_LOG(LogCollab, Error, TEXT("GrantedGameplayEffects[%d] on ability set [%s] is not valid"), EffectIndex, *GetNameSafe(this));
 			continue;
@@ -162,7 +142,7 @@ void UCollabAbilitySet::ApplyGameplayEffects_Internal(UCollabAbilitySystemCompon
 		FGameplayEffectContextHandle EffectContext = CollabASC->MakeEffectContext();
 		EffectContext.AddSourceObject(CollabASC->GetAvatarActor());
 
-		FGameplayEffectSpecHandle EffectSpecHandle = CollabASC->MakeOutgoingSpec(EffectToGrant.GameplayEffect, EffectToGrant.EffectLevel, EffectContext);
+		FGameplayEffectSpecHandle EffectSpecHandle = CollabASC->MakeOutgoingSpec(LoadedEffect, EffectToGrant.EffectLevel, EffectContext);
 		if (EffectSpecHandle.IsValid())
 		{
 			FActiveGameplayEffectHandle GameplayEffectHandle = CollabASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());

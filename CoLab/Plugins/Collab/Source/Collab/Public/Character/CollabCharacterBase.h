@@ -9,6 +9,7 @@
 #include "CollabCharacterBase.generated.h"
 
 
+class UCollabAttributeComponent;
 class UCollabAbilitySystemComponent;
 
 UCLASS(Abstract)
@@ -22,6 +23,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
 	TObjectPtr<UCollabPawnExtensionComponent> PawnExtensionComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
+	TObjectPtr<UCollabAttributeComponent> AttributeComponent;
 
 public:
 	// Sets default values for this pawn's properties

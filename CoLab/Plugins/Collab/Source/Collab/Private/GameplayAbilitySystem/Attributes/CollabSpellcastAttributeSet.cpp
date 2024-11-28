@@ -15,11 +15,13 @@ namespace CollabSpellcastGameplayTags
 void UCollabSpellcastAttributeSet::OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabSpellcastAttributeSet, MaxMana, OldMaxMana);
+	COLLABATTRIBUTE_REPNOTIFY(GetMaxManaAttribute(), OldMaxMana.GetCurrentValue(), GetMaxMana());
 }
 
 void UCollabSpellcastAttributeSet::OnRep_Mana(const FGameplayAttributeData& OldMana)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabSpellcastAttributeSet, Mana, OldMana);
+	COLLABATTRIBUTE_REPNOTIFY(GetManaAttribute(), OldMana.GetCurrentValue(), GetMana());
 
 	const float CurrentMana = GetMana();
 	OnManaChanged.Broadcast(CurrentMana, MaxMana.GetCurrentValue());

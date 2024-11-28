@@ -55,7 +55,7 @@ public:
 
 	// Gameplay effect to grant.
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UCollabGameplayEffect> GameplayEffect = nullptr;
+	TSoftClassPtr<UCollabGameplayEffect> GameplayEffect = nullptr;
 
 	// Level of gameplay effect to grant.
 	UPROPERTY(EditDefaultsOnly)
@@ -129,8 +129,6 @@ public:
 	// The returned handles can be used later to take away anything that was granted.
 	void GrantToAbilitySystem(UCollabAbilitySystemComponent* CollabASC, FCollabAbilitySet_GrantedHandles* OutGrantedHandles, UObject* SourceObject = nullptr) const;
 
-	void ApplySpawnGameplayEffects(UCollabAbilitySystemComponent* CollabASC, FCollabAbilitySet_GrantedHandles* OutGrantedHandles) const;
-
 protected:
 
 	// Gameplay abilities to grant when this ability set is granted.
@@ -143,11 +141,5 @@ protected:
 
 	// Gameplay effects to grant when this ability set is granted.
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects", meta=(TitleProperty=GameplayEffect))
-	TArray<FCollabAbilitySet_GameplayEffect> StartupGameplayEffects;
-	// Gameplay effects to grant when this ability set is granted.
-	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects", meta=(TitleProperty=GameplayEffect))
-	TArray<FCollabAbilitySet_GameplayEffect> SpawnGameplayEffects;
-
-private:
-	void ApplyGameplayEffects_Internal(UCollabAbilitySystemComponent* CollabASC, FCollabAbilitySet_GrantedHandles* OutGrantedHandles, const TArray<FCollabAbilitySet_GameplayEffect>& Effects) const;
+	TArray<FCollabAbilitySet_GameplayEffect> GameplayEffects;
 };

@@ -5,14 +5,19 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "AbilitySystemComponent.h"
+#include "Attributes/CollabAttributeSet.h"
 #include "CollabAbilitySystemComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FDynamicEvent_ReceiveDamage, UCollabAbilitySystemComponent*, SourceASC, float, UnmitigatedDamage, float, MitigatedDamage);
+// DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FDynamicEvent_ReceiveDamage, UCollabAbilitySystemComponent*, SourceASC, float, UnmitigatedDamage, float, MitigatedDamage);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class COLLAB_API UCollabAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintAssignable, meta=(AllowPrivateAccess), DisplayName="OnAttributeChanged")
+	FDynamicEvent_OnAttributeChanged OnAttributeChanged_BP;
 
 public:
 	// Sets default values for this component's properties
@@ -31,5 +36,11 @@ public:
 	void AbilityInputReleased(const FGameplayTag& InputTag);
 
 	UFUNCTION(BlueprintCallable)
+	void GiveCharacterAttributeSet(UCollabAttributeSet* AttributeSet);
+	UFUNCTION(BlueprintCallable)
 	FGameplayAbilitySpecHandle GiveCharacterAbility(FGameplayAbilitySpec& AbilitySpec);
+
+protected:
+	UFUNCTION()
+	void OnAttributeChanged(const FGameplayAttribute& Attribute, const float OldValue, const float NewValue);
 };

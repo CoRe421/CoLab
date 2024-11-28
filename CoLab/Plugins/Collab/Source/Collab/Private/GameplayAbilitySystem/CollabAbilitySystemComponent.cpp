@@ -87,15 +87,33 @@ void UCollabAbilitySystemComponent::AbilityInputReleased(const FGameplayTag& Inp
 	}
 }
 
+void UCollabAbilitySystemComponent::GiveCharacterAttributeSet(UCollabAttributeSet* AttributeSet)
+{
+	if (!IsValid(AttributeSet))
+	{
+		return;
+	}
+
+	AttributeSet->OnAttributeChanged_BP.AddUniqueDynamic(this, &ThisClass::OnAttributeChanged);
+	
+	AddAttributeSetSubobject(AttributeSet);
+}
+
 FGameplayAbilitySpecHandle UCollabAbilitySystemComponent::GiveCharacterAbility(FGameplayAbilitySpec& AbilitySpec)
 {
-	UCollabGameplayAbility* CollabAbility = Cast<UCollabGameplayAbility>(AbilitySpec.Ability);
+	const UCollabGameplayAbility* CollabAbility = Cast<UCollabGameplayAbility>(AbilitySpec.Ability);
 	if (IsValid(CollabAbility))
 	{
 		AbilitySpec.DynamicAbilityTags.AddTag(CollabAbility->InputTag);
 	}
 
 	return GiveAbility(AbilitySpec);
+}
+
+void UCollabAbilitySystemComponent::OnAttributeChanged(const FGameplayAttribute& Attribute, const float OldValue,
+	const float NewValue)
+{
+	OnAttributeChanged_BP.Broadcast(Attribute, OldValue, NewValue);
 }
 
 // void UCollabAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)

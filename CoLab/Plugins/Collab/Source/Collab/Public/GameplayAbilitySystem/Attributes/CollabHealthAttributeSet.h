@@ -65,8 +65,6 @@ public:
 	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
-	virtual void SetupBindings_Implementation(UCollabAbilitySystemComponent* AbilitySystemComponent) override;
-
 private:
 	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const;
 };

@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "GameplayAbilitySystem/CollabAbilitySet.h"
 #include "CollabPawnData.generated.h"
 
+class UCollabGameplayEffect;
 class UInputMappingContext;
 // This may be moved somewhere else
 USTRUCT(BlueprintType)
@@ -51,6 +53,10 @@ public:
 	// Ability sets to grant to this pawn's ability system.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Abilities")
 	TArray<TSoftObjectPtr<UCollabAbilitySet>> DefaultAbilitySets;
+
+	// Effects to apply on pawn spawn - CR
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Abilities")
+	TArray<FCollabAbilitySet_GameplayEffect> SpawnEffects;
 
 	// // What mapping of ability tags to use for actions taking by this pawn
 	// UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Collab|Abilities")

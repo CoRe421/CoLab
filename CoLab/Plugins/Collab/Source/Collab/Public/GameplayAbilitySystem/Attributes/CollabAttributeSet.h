@@ -14,6 +14,13 @@ GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
 GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
+
+#define COLLABATTRIBUTE_REPNOTIFY(Attribute, OldValue, NewValue) \
+{ \
+	OnAttributeChanged_BP.Broadcast(Attribute, OldValue, NewValue); \
+	OnAttributeChanged.Broadcast(nullptr, nullptr, nullptr, NewValue - OldValue, OldValue, NewValue); \
+}
+
 class UCollabAbilitySystemComponent;
 
 /** 
@@ -39,14 +46,16 @@ class COLLAB_API UCollabAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
 
-protected:
-	UPROPERTY(BlueprintAssignable, meta=(AllowPrivateAccess))
-	mutable FDynamicEvent_OnAttributeChanged OnAttributeChanged;
+private:
+	TMap<FString, float> PendingChangedAttributes;
 
 public:
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void SetupBindings(const UCollabAbilitySystemComponent* AbilitySystemComponent);
-	virtual void SetupBindings_Implementation(UCollabAbilitySystemComponent* AbilitySystemComponent) {};
+	mutable FNativeEvent_CollabAttributeEvent OnAttributeChanged;
+	UPROPERTY(BlueprintAssignable, meta=(AllowPrivateAccess), DisplayName="OnAttributeChanged")
+	mutable FDynamicEvent_OnAttributeChanged OnAttributeChanged_BP;
 
+public:
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
+	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 };

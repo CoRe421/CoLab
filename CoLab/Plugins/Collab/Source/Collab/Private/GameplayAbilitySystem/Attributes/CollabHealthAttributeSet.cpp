@@ -15,11 +15,13 @@ namespace CollabHealthGameplayTags
 void UCollabHealthAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabHealthAttributeSet, MaxHealth, OldMaxHealth);
+	COLLABATTRIBUTE_REPNOTIFY(GetMaxHealthAttribute(), OldMaxHealth.GetCurrentValue(), GetMaxHealth());
 }
 
 void UCollabHealthAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabHealthAttributeSet, Health, OldHealth);
+	COLLABATTRIBUTE_REPNOTIFY(GetHealthAttribute(), OldHealth.GetCurrentValue(), GetHealth());
 
 	const float CurrentHealth = GetHealth();
 	const float EstimatedMagnitude = CurrentHealth - OldHealth.GetCurrentValue();
@@ -110,12 +112,6 @@ void UCollabHealthAttributeSet::PostGameplayEffectExecute(const FGameplayEffectM
 
 	// Check health again in case an event above changed it.
 	bOutOfHealth = CurrentHealth <= 0.0f;
-}
-
-void UCollabHealthAttributeSet::SetupBindings_Implementation(
-	UCollabAbilitySystemComponent* AbilitySystemComponent)
-{
-	Super::SetupBindings_Implementation(AbilitySystemComponent);
 }
 
 void UCollabHealthAttributeSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const

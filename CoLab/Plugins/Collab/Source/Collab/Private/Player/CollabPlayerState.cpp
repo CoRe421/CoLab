@@ -31,18 +31,25 @@ void ACollabPlayerState::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	check(IsValid(AbilitySystemComponent));
-	
-	if (ACollabGameMode* CollabGameMode = GetWorld()->GetAuthGameMode<ACollabGameMode>())
+
+	const ACollabGameMode* CollabGameMode = GetWorld()->GetAuthGameMode<ACollabGameMode>();
+	if (!IsValid(CollabGameMode))
 	{
-		if (const UCollabPawnData* NewPawnData = CollabGameMode->GetPawnDataForController(GetOwningController()))
-		{
-			SetPawnData(NewPawnData);
-		}
-		else
-		{
-			UE_LOG(LogCollab, Error, TEXT("ACollabPlayerState::PostInitializeComponents(): Unable to find PawnData to initialize player state [%s]!"), *GetNameSafe(this));
-		}
+		return;
 	}
+	const AController* PlayerController = GetOwningController();
+	if (!IsValid(PlayerController))
+	{
+		return;
+	}
+	const UCollabPawnData* NewPawnData = CollabGameMode->GetPawnDataForController(PlayerController);
+	if (!IsValid(NewPawnData))
+	{
+		UE_LOG(LogCollab, Error, TEXT("ACollabPlayerState::PostInitializeComponents(): Unable to find PawnData to initialize player state [%s]!"), *GetNameSafe(this));
+		return;
+	}
+
+	SetPawnData(NewPawnData);
 }
 
 UAbilitySystemComponent* ACollabPlayerState::GetAbilitySystemComponent() const

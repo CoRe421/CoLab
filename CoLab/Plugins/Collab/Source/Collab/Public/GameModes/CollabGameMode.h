@@ -41,6 +41,7 @@ protected:
 
 	//~Begin AGameMode interface
 	virtual bool PlayerCanRestart_Implementation(APlayerController* Player) override;
+	virtual void HandleMatchHasStarted() override;
 	//~End AGameMode interface
 
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;

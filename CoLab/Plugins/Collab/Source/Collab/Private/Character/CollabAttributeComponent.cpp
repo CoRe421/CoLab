@@ -40,31 +40,24 @@ void UCollabAttributeComponent::InitializeWithAbilitySystem(UCollabAbilitySystem
 
 	AbilitySystemComponent->OnAttributeChanged_BP.AddUniqueDynamic(this, &ThisClass::OnAttributeChanged);
 
-	for (const TTuple<TSoftClassPtr<UCollabAttributeSet>, FObjectCallbackContainer>& Pair : AttributeChangedCallbacks)
+	for (const TTuple<FGameplayAttribute, FObjectCallbackContainer>& Pair : AttributeChangedCallbacks)
 	{
-		UClass* AttributeSetClass = Pair.Key.LoadSynchronous();
-		if (!IsValid(AttributeSetClass))
+		if (!Pair.Key.IsValid())
 		{
 			continue;
 		}
 
-		TArray<FGameplayAttribute> Attributes;
-		UAttributeSet::GetAttributesFromSetClass(AttributeSetClass, Attributes);
-
-		for (const FGameplayAttribute& Attribute : Attributes)
-		{
-			const float CurrentValue = AbilitySystemComponent->GetNumericAttribute(Attribute);
-			OnAttributeChanged_BP.Broadcast(Attribute, CurrentValue, CurrentValue);
+		const float CurrentValue = AbilitySystemComponent->GetNumericAttribute(Pair.Key);
+		OnAttributeChanged_BP.Broadcast(Pair.Key, CurrentValue, CurrentValue);
 			
-			for (const TTuple<TWeakObjectPtr<const UObject>, FDynamicCallback_OnAttributeChanged>& CallbackPair : Pair.Value.ObjectCallbacks)
+		for (const TTuple<TWeakObjectPtr<const UObject>, FDynamicCallback_OnAttributeChanged>& CallbackPair : Pair.Value.ObjectCallbacks)
+		{
+			if (!CallbackPair.Key.IsValid())
 			{
-				if (!CallbackPair.Key.IsValid())
-				{
-					continue;
-				}
-
-				CallbackPair.Value.ExecuteIfBound(Attribute, CurrentValue, CurrentValue);
+				continue;
 			}
+
+			CallbackPair.Value.ExecuteIfBound(Pair.Key, CurrentValue, CurrentValue);
 		}
 	}
 }
@@ -121,7 +114,7 @@ void UCollabAttributeComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 }
 
 void UCollabAttributeComponent::RegisterAttributeChangedCallback(const UObject* Owner,
-	const TSoftClassPtr<UCollabAttributeSet> AttributeSet, const FDynamicCallback_OnAttributeChanged& Callback)
+	const FGameplayAttribute Attribute, const FDynamicCallback_OnAttributeChanged& Callback)
 {
 	// If replicating
 	// FAttributeCallbackContainer Container;
@@ -130,8 +123,8 @@ void UCollabAttributeComponent::RegisterAttributeChangedCallback(const UObject* 
 	// 	return;
 	// }
 	
-	FObjectCallbackContainer& FoundCallbackContainer = AttributeChangedCallbacks.FindOrAdd(AttributeSet);
-	FDynamicCallback_OnAttributeChanged* FoundCallback = FoundCallbackContainer.ObjectCallbacks.Find(Owner);
+	FObjectCallbackContainer& FoundCallbackContainer = AttributeChangedCallbacks.FindOrAdd(Attribute);
+	const FDynamicCallback_OnAttributeChanged* FoundCallback = FoundCallbackContainer.ObjectCallbacks.Find(Owner);
 	if (!ensureAlways(!FoundCallback))
 	{
 		return;
@@ -141,7 +134,7 @@ void UCollabAttributeComponent::RegisterAttributeChangedCallback(const UObject* 
 }
 
 void UCollabAttributeComponent::ClearCallbackForAttribute(const UObject* Owner,
-	const TSoftClassPtr<UCollabAttributeSet> AttributeSet)
+	const FGameplayAttribute Attribute)
 {
 	// If replicating
 	// FAttributeCallbackContainer Container;
@@ -150,7 +143,7 @@ void UCollabAttributeComponent::ClearCallbackForAttribute(const UObject* Owner,
 	// 	return;
 	// }
 	
-	FObjectCallbackContainer& FoundCallbackContainer = AttributeChangedCallbacks.FindOrAdd(AttributeSet);
+	FObjectCallbackContainer& FoundCallbackContainer = AttributeChangedCallbacks.FindOrAdd(Attribute);
 	FoundCallbackContainer.ObjectCallbacks.Remove(Owner);
 }
 
@@ -159,8 +152,6 @@ void UCollabAttributeComponent::OnAttributeChanged(const FGameplayAttribute& Att
 {
 	OnAttributeChanged_BP.Broadcast(Attribute, OldValue, NewValue);
 
-	const UClass* AttributeClass = Attribute.GetAttributeSetClass();
-
 	// If replicating
 	// FAttributeCallbackContainer Container;
 	// if (!FindOrAddAttributeContainer(AttributeClass, nullptr, Container))
@@ -168,7 +159,7 @@ void UCollabAttributeComponent::OnAttributeChanged(const FGameplayAttribute& Att
 	// 	return;
 	// }
 	
-	FObjectCallbackContainer& FoundCallbackContainer = AttributeChangedCallbacks.FindOrAdd(AttributeClass);
+	FObjectCallbackContainer& FoundCallbackContainer = AttributeChangedCallbacks.FindOrAdd(Attribute);
 	for (const auto& Pair : FoundCallbackContainer.ObjectCallbacks)
 	{
 		if (!Pair.Key.IsValid())

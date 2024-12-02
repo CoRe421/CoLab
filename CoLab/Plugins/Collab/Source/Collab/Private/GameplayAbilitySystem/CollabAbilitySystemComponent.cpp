@@ -27,6 +27,11 @@ void UCollabAbilitySystemComponent::BeginPlay()
 	// ExecutePeriodicEffect()
 }
 
+void UCollabAbilitySystemComponent::OnRegister()
+{
+	Super::OnRegister();
+}
+
 
 // Called every frame
 void UCollabAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
@@ -95,6 +100,7 @@ void UCollabAbilitySystemComponent::GiveCharacterAttributeSet(UCollabAttributeSe
 	}
 
 	AttributeSet->OnAttributeChanged_BP.AddUniqueDynamic(this, &ThisClass::OnAttributeChanged);
+	Client_OnAttributeSetAdded(AttributeSet);
 	
 	AddAttributeSetSubobject(AttributeSet);
 }
@@ -110,10 +116,50 @@ FGameplayAbilitySpecHandle UCollabAbilitySystemComponent::GiveCharacterAbility(F
 	return GiveAbility(AbilitySpec);
 }
 
+void UCollabAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor)
+{
+	Super::InitAbilityActorInfo(InOwnerActor, InAvatarActor);
+	
+	if (!IsOwnerActorAuthoritative())
+	{
+		return;
+	}
+
+	TArray<FGameplayAttribute> GameplayAttributes;
+	GetAllAttributes(GameplayAttributes);
+	TSet<UClass*> FoundAttributeSets;
+	for (const FGameplayAttribute& Attribute : GameplayAttributes)
+	{
+		UClass* AttributeSetClass = Attribute.GetAttributeSetClass();
+		if (!IsValid(AttributeSetClass) || FoundAttributeSets.Contains(AttributeSetClass))
+		{
+			continue;
+		}
+		FoundAttributeSets.Emplace(AttributeSetClass);
+		const UCollabAttributeSet* AttributeSet = Cast<UCollabAttributeSet>(GetAttributeSet(AttributeSetClass));
+		if (!IsValid(AttributeSet))
+		{
+			continue;
+		}
+
+		Client_OnAttributeSetAdded(AttributeSet);
+	}
+}
+
 void UCollabAbilitySystemComponent::OnAttributeChanged(const FGameplayAttribute& Attribute, const float OldValue,
-	const float NewValue)
+                                                       const float NewValue)
 {
 	OnAttributeChanged_BP.Broadcast(Attribute, OldValue, NewValue);
+}
+
+void UCollabAbilitySystemComponent::Client_OnAttributeSetAdded_Implementation(const UCollabAttributeSet* AttributeSet)
+{
+	if (!IsValid(AttributeSet))
+	{
+		return;
+	}
+
+	AttributeSet->OnAttributeChanged_BP.AddUniqueDynamic(this, &ThisClass::OnAttributeChanged);
 }
 
 // void UCollabAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)

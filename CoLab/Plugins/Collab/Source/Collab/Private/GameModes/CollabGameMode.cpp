@@ -7,7 +7,10 @@
 #include "Character/CollabPawnData.h"
 #include "Character/CollabPawnExtensionComponent.h"
 #include "Character/CollabPlayerCharacter.h"
+#include "GameFramework/CheatManager.h"
+#include "GameFramework/GameSession.h"
 #include "GameModes/CollabGameData.h"
+#include "Kismet/GameplayStatics.h"
 #include "Player/CollabPlayerState.h"
 
 const UCollabGameData* ACollabGameMode::GetDefaultGameData(const AActor* WorldContext)
@@ -125,7 +128,54 @@ void ACollabGameMode::InitGameState()
 
 bool ACollabGameMode::PlayerCanRestart_Implementation(APlayerController* Player)
 {
-	return Super::PlayerCanRestart_Implementation(Player);
+	const bool bCanRestart = Super::PlayerCanRestart_Implementation(Player);
+	return bCanRestart;
+}
+
+void ACollabGameMode::HandleMatchHasStarted()
+{
+	// Use same functionality as parent except don't restart players - CR
+	// Super::HandleMatchHasStarted();
+	GameSession->HandleMatchHasStarted();
+
+	// start human players first
+	// for( FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator )
+	// {
+	// 	APlayerController* PlayerController = Iterator->Get();
+	// 	if (PlayerController && (PlayerController->GetPawn() == nullptr) && PlayerCanRestart(PlayerController))
+	// 	{
+	// 		RestartPlayer(PlayerController);
+	// 	}
+	// }
+
+	// Make sure level streaming is up to date before triggering NotifyMatchStarted
+	GEngine->BlockTillLevelStreamingCompleted(GetWorld());
+
+	// First fire BeginPlay, if we haven't already in waiting to start match
+	GetWorldSettings()->NotifyBeginPlay();
+
+	// Then fire off match started
+	GetWorldSettings()->NotifyMatchStarted();
+
+	// if passed in bug info, send player to right location
+	const FString BugLocString = UGameplayStatics::ParseOption(OptionsString, TEXT("BugLoc"));
+	const FString BugRotString = UGameplayStatics::ParseOption(OptionsString, TEXT("BugRot"));
+	if( !BugLocString.IsEmpty() || !BugRotString.IsEmpty() )
+	{
+		for( FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator )
+		{
+			APlayerController* PlayerController = Iterator->Get();
+			if (PlayerController &&  PlayerController->CheatManager != nullptr)
+			{
+				PlayerController->CheatManager->BugItGoString( BugLocString, BugRotString );
+			}
+		}
+	}
+
+	if (IsHandlingReplays() && GetGameInstance() != nullptr)
+	{
+		GetGameInstance()->StartRecordingReplay(GetWorld()->GetMapName(), GetWorld()->GetMapName());
+	}
 }
 
 void ACollabGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -137,7 +187,6 @@ void ACollabGameMode::InitGame(const FString& MapName, const FString& Options, F
 void ACollabGameMode::StartPlay()
 {
 	Super::StartPlay();
-	
 	// GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::RestartPlayers);
 }
 

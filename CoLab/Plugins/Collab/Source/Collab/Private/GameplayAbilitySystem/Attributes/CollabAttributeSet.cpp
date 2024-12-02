@@ -8,8 +8,11 @@
 void UCollabAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
-
-	OnAttributeChanged_BP.Broadcast(Attribute, OldValue, NewValue);
+	
+	if (OldValue != NewValue)
+	{
+		OnAttributeChanged_BP.Broadcast(Attribute, OldValue, NewValue);
+	}
 }
 
 bool UCollabAttributeSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)

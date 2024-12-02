@@ -53,7 +53,7 @@ protected:
 	TWeakObjectPtr<UCollabAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY()
-	TMap<TSoftClassPtr<UCollabAttributeSet>, FObjectCallbackContainer> AttributeChangedCallbacks;
+	TMap<FGameplayAttribute, FObjectCallbackContainer> AttributeChangedCallbacks;
 
 	// If replicating
 	// UPROPERTY(Replicated)
@@ -96,9 +96,9 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable, meta=(HidePin="Owner", DefaultToSelf="Owner"))
-	void RegisterAttributeChangedCallback(const UObject* Owner, const TSoftClassPtr<UCollabAttributeSet> AttributeSet, const FDynamicCallback_OnAttributeChanged& Callback);
+	void RegisterAttributeChangedCallback(const UObject* Owner, const FGameplayAttribute Attribute, const FDynamicCallback_OnAttributeChanged& Callback);
 	UFUNCTION(BlueprintCallable, meta=(HidePin="Owner", DefaultToSelf="Owner"))
-	void ClearCallbackForAttribute(const UObject* Owner, const TSoftClassPtr<UCollabAttributeSet> AttributeSet);
+	void ClearCallbackForAttribute(const UObject* Owner, const FGameplayAttribute Attribute);
 
 protected:
 	UFUNCTION()

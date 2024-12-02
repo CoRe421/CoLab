@@ -27,6 +27,8 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	virtual void OnRegister() override;
+
 public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
@@ -40,7 +42,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FGameplayAbilitySpecHandle GiveCharacterAbility(FGameplayAbilitySpec& AbilitySpec);
 
+	virtual void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor) override;
+
 protected:
 	UFUNCTION()
 	void OnAttributeChanged(const FGameplayAttribute& Attribute, const float OldValue, const float NewValue);
+
+	UFUNCTION(Client, Reliable)
+	void Client_OnAttributeSetAdded(const UCollabAttributeSet* AttributeSet);
+	void Client_OnAttributeSetAdded_Implementation(const UCollabAttributeSet* AttributeSet);
 };

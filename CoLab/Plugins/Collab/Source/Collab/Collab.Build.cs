@@ -25,7 +25,8 @@ public class Collab : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", "GameplayAbilities", "ModularGameplay", "NetCore", "EnhancedInput", "ModularGameplay"
+				"Core", "GameplayAbilities", "ModularGameplay", "NetCore", "EnhancedInput", "ModularGameplay", 
+				"CommonUI", "CommonInput", "UMG", "InputCore"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

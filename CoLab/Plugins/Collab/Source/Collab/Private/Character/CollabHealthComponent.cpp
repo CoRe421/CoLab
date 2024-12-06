@@ -45,7 +45,7 @@ void UCollabHealthComponent::InitializeWithAbilitySystem(UCollabAbilitySystemCom
 	}
 
 	HealthSet = AbilitySystemComponent->GetSet<UCollabHealthAttributeSet>();
-	if (!HealthSet)
+	if (!HealthSet.IsValid())
 	{
 		UE_LOG(LogCollab, Error, TEXT("CollabHealthComponent: Cannot initialize health component for owner [%s] with NULL health set on the ability system."), *GetNameSafe(Owner));
 		return;
@@ -62,8 +62,7 @@ void UCollabHealthComponent::InitializeWithAbilitySystem(UCollabAbilitySystemCom
 
 void UCollabHealthComponent::UninitializeFromAbilitySystem()
 {
-
-	if (HealthSet)
+	if (HealthSet.IsValid())
 	{
 		HealthSet->OnHealthChanged.RemoveAll(this);
 		// HealthSet->OnMaxHealthChanged.RemoveAll(this);

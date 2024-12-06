@@ -37,6 +37,7 @@ protected:
 	virtual APawn* SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform) override;
 	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 	virtual void InitGameState() override;
+	virtual void AddInactivePlayer(APlayerState* PlayerState, APlayerController* PC) override;
 	//~End AGameModeBase interface
 
 	//~Begin AGameMode interface

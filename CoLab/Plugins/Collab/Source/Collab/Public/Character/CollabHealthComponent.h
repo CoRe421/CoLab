@@ -24,7 +24,7 @@ protected:
 
 	// Health set used by this component.
 	UPROPERTY()
-	TObjectPtr<const UCollabHealthAttributeSet> HealthSet;
+	TWeakObjectPtr<const UCollabHealthAttributeSet> HealthSet;
 
 public:
 

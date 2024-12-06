@@ -11,5 +11,5 @@ UCollabActivatableWidgetStack::UCollabActivatableWidgetStack()
 void UCollabActivatableWidgetStack::ReceiveOnTransitioningChanged(UCommonActivatableWidgetContainerBase* Widget,
 	bool bIsTransitioning)
 {
-	OnStackTransitioningChanged.Broadcast(bIsTransitioning);
+	OnStackTransitioningChanged.Broadcast(this, bIsTransitioning);
 }

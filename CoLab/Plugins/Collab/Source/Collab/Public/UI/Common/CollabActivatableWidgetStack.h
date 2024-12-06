@@ -7,7 +7,7 @@
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "CollabActivatableWidgetStack.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDynamicEvent_OnStackTransitioningChanged, const bool, bIsTransitioning);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FDynamicEvent_OnStackTransitioningChanged, UCollabActivatableWidgetStack*, WidgetStack, const bool, bIsTransitioning);
 
 /**
  * 

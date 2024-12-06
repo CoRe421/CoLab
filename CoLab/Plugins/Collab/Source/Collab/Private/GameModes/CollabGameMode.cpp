@@ -126,6 +126,13 @@ void ACollabGameMode::InitGameState()
 	Super::InitGameState();
 }
 
+void ACollabGameMode::AddInactivePlayer(APlayerState* PlayerState, APlayerController* PC)
+{
+	// Commented out because this is causing issues when a player reconnects
+	// -- This causes initialization to partially bind to the incorrect player state, messing up GAS
+	// Super::AddInactivePlayer(PlayerState, PC);
+}
+
 bool ACollabGameMode::PlayerCanRestart_Implementation(APlayerController* Player)
 {
 	const bool bCanRestart = Super::PlayerCanRestart_Implementation(Player);

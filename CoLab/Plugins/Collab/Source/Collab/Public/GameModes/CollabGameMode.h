@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CollabGameModeInterface.h"
 #include "GameFramework/GameMode.h"
 #include "GameFramework/GameModeBase.h"
 #include "CollabGameMode.generated.h"
@@ -13,7 +14,7 @@ class UCollabPawnData;
  * 
  */
 UCLASS()
-class COLLAB_API ACollabGameMode : public AGameMode
+class COLLAB_API ACollabGameMode : public AGameMode, public ICollabGameModeInterface
 {
 	GENERATED_BODY()
 
@@ -30,6 +31,10 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "Collab|Pawn")
 	const UCollabPawnData* GetPawnDataForController(const AController* InController) const;
+
+	//~Begin ICollabGameModeInterface
+	virtual void SpawnPlayer_Implementation(APlayerController* PlayerController) override;
+	//~End ICollabGameModeInterface
 
 protected:
 	//~Begin AGameModeBase interface

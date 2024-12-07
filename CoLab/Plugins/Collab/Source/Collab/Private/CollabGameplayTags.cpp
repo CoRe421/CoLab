@@ -30,6 +30,11 @@ namespace CollabGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_DataInitialized, "InitState.DataInitialized", "3: The available data has been initialized for this actor/component, but it is not ready for full gameplay");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(InitState_GameplayReady, "InitState.GameplayReady", "4: The actor/component is fully ready for active gameplay");
 	
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(UI_Layer_Game, "UI.Layer.Game", "Common UI Game Layer.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(UI_Layer_GameMode, "UI.Layer.GameMode", "Common UI GameMode Layer.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(UI_Layer_Menu, "UI.Layer.Menu", "Common UI Menu Layer.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(UI_Layer_Settings, "UI.Layer.Settings", "Common UI Settings Layer.");
+	
 	
 	FGameplayTag CollabGameplayTags::FindTagByString(const FString& TagString, bool bMatchPartialString)
 	{

@@ -26,7 +26,7 @@ public class Collab : ModuleRules
 			new string[]
 			{
 				"Core", "GameplayAbilities", "ModularGameplay", "NetCore", "EnhancedInput", "ModularGameplay", 
-				"CommonUI", "CommonInput", "UMG", "InputCore"
+				"CommonUI", "CommonInput", "UMG", "InputCore", "GameplayTags"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

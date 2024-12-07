@@ -56,6 +56,11 @@ const UCollabPawnData* ACollabGameMode::GetPawnDataForController(const AControll
 	return LoadedPawnData;
 }
 
+void ACollabGameMode::SpawnPlayer_Implementation(APlayerController* PlayerController)
+{
+	TryRestartPlayer(PlayerController);
+}
+
 UClass* ACollabGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
 	const UCollabPawnData* PawnData = GetPawnDataForController(InController);

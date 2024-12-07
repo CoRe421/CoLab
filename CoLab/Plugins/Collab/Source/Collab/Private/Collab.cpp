@@ -2,6 +2,8 @@
 
 #include "Collab.h"
 
+#include "GameplayTagsManager.h"
+
 #define LOCTEXT_NAMESPACE "FCollabModule"
 
 void FCollabModule::StartupModule()

@@ -30,6 +30,7 @@ void UCollabGameplayAbility_Death::ActivateAbility(const FGameplayAbilitySpecHan
 	const FGameplayEventData* TriggerEventData)
 {
 	check(ActorInfo);
+	FEditorScriptExecutionGuard ScriptGuard;
 
 	UCollabAbilitySystemComponent* CollabASC = CastChecked<UCollabAbilitySystemComponent>(ActorInfo->AbilitySystemComponent.Get());
 
@@ -50,7 +51,7 @@ void UCollabGameplayAbility_Death::ActivateAbility(const FGameplayAbilitySpecHan
 	{
 		StartDeath();
 	}
-	
+
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 

@@ -55,7 +55,7 @@ void UCollabAbilitySystemComponent::AbilityInputPressed(const FGameplayTag& Inpu
 	{
 		if (!Spec.DynamicAbilityTags.HasTagExact(InputTag))
 		{
-			return;
+			continue;
 		}
 
 		const EGameplayAbilityInstancingPolicy::Type InstancePolicy = Spec.Ability->GetInstancingPolicy();

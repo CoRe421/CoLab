@@ -19,4 +19,7 @@ class COLLAB_API UCollabFunctionLibrary : public UBlueprintFunctionLibrary
 public:
 	UFUNCTION(BlueprintCallable, meta=(DeterminesOutputType="AttributeSet"))
 	static const UCollabAttributeSet* GetCollabAttributeSet(const UAbilitySystemComponent* AbilitySystemComponent, const TSubclassOf<UCollabAttributeSet> AttributeSet);
+
+	UFUNCTION(BlueprintCallable, meta=(DeterminesOutputType="Class", DefaultToSelf="Outer"))
+	static UObject* ConstructObjectFromClassWithTemplate(UObject* Outer, const TSubclassOf<UObject> Class, UObject* Template);
 };

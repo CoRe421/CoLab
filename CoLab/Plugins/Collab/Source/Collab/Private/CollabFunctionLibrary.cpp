@@ -18,3 +18,15 @@ const UCollabAttributeSet* UCollabFunctionLibrary::GetCollabAttributeSet(
 	const UAttributeSet* FoundAttributeSet = AbilitySystemComponent->GetAttributeSet(AttributeSet);
 	return Cast<UCollabAttributeSet>(FoundAttributeSet);
 }
+
+UObject* UCollabFunctionLibrary::ConstructObjectFromClassWithTemplate(UObject* Outer, const TSubclassOf<UObject> Class,
+	UObject* Template)
+{
+	if (!IsValid(Outer) || !IsValid(Class))
+	{
+		return nullptr;
+	}
+
+	UObject* CreatedObject = NewObject<UObject>(Outer, Class, NAME_None, RF_NoFlags, Template);
+	return CreatedObject;
+}

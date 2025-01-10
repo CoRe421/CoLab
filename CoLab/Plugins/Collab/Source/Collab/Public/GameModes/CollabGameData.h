@@ -17,7 +17,13 @@ class COLLAB_API UCollabGameData : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 protected:
-	UPROPERTY(EditDefaultsOnly, meta=(AllowPrivateAccess))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess), Category="Collab|Default")
+	FText DisplayName;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess), Category="Collab|Default")
+	TSoftObjectPtr<class UWorld> GameLevel;
+	
+	UPROPERTY(EditDefaultsOnly, meta=(AllowPrivateAccess), Category="Collab|Settings")
 	TMap<FGameplayTag, TSoftClassPtr<UCollabGameplayEffect>> GlobalTagEffects;
 
 public:	

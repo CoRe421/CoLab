@@ -14,6 +14,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDynamicEvent_OnOutOfHealth);
 namespace CollabHealthGameplayTags
 {
 	COLLAB_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gameplay_State_Damaged);
+	COLLAB_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gameplay_Event_DealtDamage);
 }
 
 /**

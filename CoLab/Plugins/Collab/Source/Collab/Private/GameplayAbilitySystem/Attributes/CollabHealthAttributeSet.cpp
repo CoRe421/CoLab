@@ -10,6 +10,7 @@
 namespace CollabHealthGameplayTags
 {
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Gameplay_State_Damaged, "Gameplay.State.Damaged", "Target has recently taken damage.");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Gameplay_Event_DealtDamage, "Gameplay.Event.DealtDamage", "Target has been dealt damage.");
 }
 
 void UCollabHealthAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth)

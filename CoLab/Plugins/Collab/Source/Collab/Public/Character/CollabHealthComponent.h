@@ -76,5 +76,6 @@ protected:
 	virtual void HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
 
 private:
-	void BroadcastDamaged();
+	void BroadcastDamaged(AActor* DamageInstigator, AActor* DamageCauser,
+		const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude);
 };

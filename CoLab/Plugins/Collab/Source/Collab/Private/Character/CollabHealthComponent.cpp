@@ -165,7 +165,7 @@ void UCollabHealthComponent::OnUnregister()
 void UCollabHealthComponent::HandleHealthChanged(AActor* DamageInstigator, AActor* DamageCauser,
 	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
 {
-	BroadcastDamaged();
+	BroadcastDamaged(DamageInstigator, DamageCauser, DamageEffectSpec, DamageMagnitude);
 }
 
 
@@ -211,14 +211,15 @@ void UCollabHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 #endif // #if WITH_SERVER_CODE
 }
 
-void UCollabHealthComponent::BroadcastDamaged()
+void UCollabHealthComponent::BroadcastDamaged(AActor* DamageInstigator, AActor* DamageCauser,
+	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude)
 {
 	if (!AbilitySystemComponent.IsValid())
 	{
 		return;
 	}
 
-	const AActor* Owner = GetOwner();
+	const AActor* Owner = AbilitySystemComponent->GetOwner();
 	if (!IsValid(Owner))
 	{
 		return;
@@ -231,37 +232,53 @@ void UCollabHealthComponent::BroadcastDamaged()
 	}
 
 	const TMap<FGameplayTag, TSoftClassPtr<UCollabGameplayEffect>>& GlobalTagEffects = GameData->GetGlobalTagEffects();
+	
 	const TSoftClassPtr<UCollabGameplayEffect>* DamagedEffectClass = GlobalTagEffects.Find(
 		CollabHealthGameplayTags::Gameplay_State_Damaged);
-	if (!DamagedEffectClass)
+	if (DamagedEffectClass)
 	{
-		return;
+		const TSubclassOf<UCollabGameplayEffect> LoadedDamagedEffectClass = DamagedEffectClass->LoadSynchronous();
+		if (IsValid(LoadedDamagedEffectClass))
+		{
+
+			FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(LoadedDamagedEffectClass, 1.0f, AbilitySystemComponent->MakeEffectContext());
+			FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
+
+			if (Spec)
+			{
+				// Spec->AddDynamicAssetTag(TAG_Gameplay_DamageSelfDestruct);
+				//
+				// if (bFellOutOfWorld)
+				// {
+				// 	Spec->AddDynamicAssetTag(TAG_Gameplay_FellOutOfWorld);
+				// }
+				//
+				// const float DamageAmount = GetMaxHealth();
+				//
+				// Spec->SetSetByCallerMagnitude(LyraGameplayTags::SetByCaller_Damage, DamageAmount);
+				AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec);
+			}
+			else
+			{
+				UE_LOG(LogCollab, Error, TEXT("CollabHealthComponent: BroadcastDamaged failed for owner [%s]. Unable to make outgoing spec for [%s]."), *GetNameSafe(GetOwner()), *GetNameSafe(LoadedDamagedEffectClass));
+			}
+		}
 	}
 
-	const TSubclassOf<UCollabGameplayEffect> LoadedDamagedEffectClass = DamagedEffectClass->LoadSynchronous();
-	if (!IsValid(LoadedDamagedEffectClass))
+	UCollabAbilitySystemComponent* InstigatorAbilityComponent = UCollabAbilitySystemComponent::FindAbilitySystemComponent(DamageInstigator);
+	if (IsValid(InstigatorAbilityComponent) && InstigatorAbilityComponent != AbilitySystemComponent)
 	{
-		return;
+		FGameplayEventData Payload;
+		Payload.EventTag = CollabHealthGameplayTags::Gameplay_Event_DealtDamage;
+		Payload.Instigator = Owner;
+		Payload.Target = DamageInstigator;
+		Payload.OptionalObject = DamageEffectSpec->Def;
+		Payload.ContextHandle = DamageEffectSpec->GetEffectContext();
+		Payload.InstigatorTags = *DamageEffectSpec->CapturedSourceTags.GetAggregatedTags();
+		Payload.TargetTags = *DamageEffectSpec->CapturedTargetTags.GetAggregatedTags();
+		Payload.EventMagnitude = DamageMagnitude;
+
+		FScopedPredictionWindow NewScopedWindow(InstigatorAbilityComponent, true);
+		InstigatorAbilityComponent->HandleGameplayEvent(Payload.EventTag, &Payload);
 	}
-
-	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(LoadedDamagedEffectClass, 1.0f, AbilitySystemComponent->MakeEffectContext());
-	FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
-
-	if (!Spec)
-	{
-		UE_LOG(LogCollab, Error, TEXT("CollabHealthComponent: BroadcastDamaged failed for owner [%s]. Unable to make outgoing spec for [%s]."), *GetNameSafe(GetOwner()), *GetNameSafe(LoadedDamagedEffectClass));
-		return;
-	}
-
-	// Spec->AddDynamicAssetTag(TAG_Gameplay_DamageSelfDestruct);
-	//
-	// if (bFellOutOfWorld)
-	// {
-	// 	Spec->AddDynamicAssetTag(TAG_Gameplay_FellOutOfWorld);
-	// }
-	//
-	// const float DamageAmount = GetMaxHealth();
-	//
-	// Spec->SetSetByCallerMagnitude(LyraGameplayTags::SetByCaller_Damage, DamageAmount);
-	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec);
 }

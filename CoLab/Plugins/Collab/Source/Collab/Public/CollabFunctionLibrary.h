@@ -22,4 +22,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, meta=(DeterminesOutputType="Class", DefaultToSelf="Outer"))
 	static UObject* ConstructObjectFromClassWithTemplate(UObject* Outer, const TSubclassOf<UObject> Class, UObject* Template);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, meta=(DefaultToSelf="Actor"))
+	static bool IsActorOnClient(const AActor* Actor);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, meta=(DefaultToSelf="Actor"))
+	static bool IsActorOnServer(const AActor* Actor);
 };

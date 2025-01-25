@@ -26,7 +26,4 @@ protected:
 	virtual void BeginPlay() override;
 	
 	virtual void AcknowledgePossession(APawn* NewPawn) override;
-
-	void AbilityInputPressed(FGameplayTag InputTag);
-	void AbilityInputReleased(FGameplayTag InputTag);
 };

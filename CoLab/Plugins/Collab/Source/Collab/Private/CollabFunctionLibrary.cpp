@@ -30,3 +30,16 @@ UObject* UCollabFunctionLibrary::ConstructObjectFromClassWithTemplate(UObject* O
 	UObject* CreatedObject = NewObject<UObject>(Outer, Class, NAME_None, RF_NoFlags, Template);
 	return CreatedObject;
 }
+
+bool UCollabFunctionLibrary::IsActorOnClient(const AActor* Actor)
+{
+	const bool bIsOnClient = Actor->IsNetMode(NM_Client);
+	return bIsOnClient;
+}
+
+bool UCollabFunctionLibrary::IsActorOnServer(const AActor* Actor)
+{
+	const bool bIsOnClient = IsActorOnClient(Actor);
+	const bool bHasAuthority = Actor->HasAuthority();
+	return bHasAuthority && !bIsOnClient;
+}

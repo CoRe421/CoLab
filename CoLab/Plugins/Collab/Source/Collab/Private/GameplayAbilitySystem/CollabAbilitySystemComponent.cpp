@@ -42,7 +42,7 @@ void UCollabAbilitySystemComponent::TickComponent(float DeltaTime, ELevelTick Ti
 	// ...
 }
 
-void UCollabAbilitySystemComponent::AbilityInputPressed(const FGameplayTag& InputTag)
+void UCollabAbilitySystemComponent::AbilityInputTriggered(const FGameplayTag& InputTag)
 {
 	if (!InputTag.IsValid())
 	{
@@ -51,7 +51,8 @@ void UCollabAbilitySystemComponent::AbilityInputPressed(const FGameplayTag& Inpu
 	
 	ABILITYLIST_SCOPE_LOCK();
 
-	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	const TArray<FGameplayAbilitySpec>& AllActivatableAbilities = GetActivatableAbilities();
+	for (const FGameplayAbilitySpec& Spec : AllActivatableAbilities)
 	{
 		if (!Spec.DynamicAbilityTags.HasTagExact(InputTag))
 		{
@@ -80,11 +81,12 @@ void UCollabAbilitySystemComponent::AbilityInputReleased(const FGameplayTag& Inp
 	
 	ABILITYLIST_SCOPE_LOCK();
 
-	for (const FGameplayAbilitySpec& Spec : GetActivatableAbilities())
+	const TArray<FGameplayAbilitySpec>& AllActivatableAbilities = GetActivatableAbilities();
+	for (const FGameplayAbilitySpec& Spec : AllActivatableAbilities)
 	{
 		if (!Spec.DynamicAbilityTags.HasTagExact(InputTag))
 		{
-			return;
+			continue;
 		}
 		
 		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle,
@@ -110,7 +112,8 @@ FGameplayAbilitySpecHandle UCollabAbilitySystemComponent::GiveCharacterAbility(F
 	const UCollabGameplayAbility* CollabAbility = Cast<UCollabGameplayAbility>(AbilitySpec.Ability);
 	if (IsValid(CollabAbility))
 	{
-		AbilitySpec.DynamicAbilityTags.AddTag(CollabAbility->InputTag);
+		const FGameplayTag InputTag = CollabAbility->GetInputTag();
+		AbilitySpec.DynamicAbilityTags.AddTag(InputTag);
 	}
 
 	return GiveAbility(AbilitySpec);

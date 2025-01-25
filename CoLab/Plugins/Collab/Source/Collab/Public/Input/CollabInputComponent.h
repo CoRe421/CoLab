@@ -30,8 +30,8 @@ public:
 	                           FActorComponentTickFunction* ThisTickFunction) override;
 
 
-	template<class UserClass, typename PressedFuncType, typename ReleasedFuncType>
-	void BindAbilityActions(UCollabInputConfig* InputConfig, UserClass* Object, PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc);
+	template<class UserClass, typename TriggeredFuncType>
+	void BindAbilityActions(UCollabInputConfig* InputConfig, UserClass* Object, TriggeredFuncType TriggeredFunc);
 
 	template<class UserClass, typename FuncType>
 	void BindNativeAction(const UCollabInputConfig* InputConfig, const FGameplayTag& InputTag, ETriggerEvent TriggerEvent, UserClass* Object, FuncType Func, bool bLogIfNotFound);
@@ -41,9 +41,9 @@ public:
 	void RemoveInputMappings(const UCollabInputConfig* InputConfig, UEnhancedInputLocalPlayerSubsystem* InputSubsystem) const;
 };
 
-template <class UserClass, typename PressedFuncType, typename ReleasedFuncType>
+template <class UserClass, typename TriggeredFuncType>
 void UCollabInputComponent::BindAbilityActions(UCollabInputConfig* InputConfig, UserClass* Object,
-	PressedFuncType PressedFunc, ReleasedFuncType ReleasedFunc)
+	TriggeredFuncType TriggeredFunc)
 {
 	if (!ensureAlways(IsValid(InputConfig)))
 	{
@@ -55,14 +55,9 @@ void UCollabInputComponent::BindAbilityActions(UCollabInputConfig* InputConfig, 
 		const UInputAction* InputAction = Action.InputAction.LoadSynchronous();
 		if (IsValid(InputAction) && Action.InputAction.IsValid())
 		{
-			if (PressedFunc)
+			if (TriggeredFunc)
 			{
-				BindAction(InputAction, ETriggerEvent::Started, Object, PressedFunc, Action.InputTag);
-			}
-			
-			if (ReleasedFunc)
-			{
-				BindAction(InputAction, ETriggerEvent::Completed, Object, ReleasedFunc, Action.InputTag);
+				BindAction(InputAction, ETriggerEvent::Triggered, Object, TriggeredFunc, Action.InputTag);
 			}
 		}
 	}

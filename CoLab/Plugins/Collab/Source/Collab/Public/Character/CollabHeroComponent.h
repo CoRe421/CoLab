@@ -49,8 +49,7 @@ protected:
 
 	virtual void InitializePlayerInput(UInputComponent* PlayerInputComponent);
 
-	void Input_AbilityInputTagPressed(FGameplayTag InputTag);
-	void Input_AbilityInputTagReleased(FGameplayTag InputTag);
+	void Input_AbilityInputTagTriggered(const struct FInputActionInstance& InputActionInstance, const FGameplayTag InputTag);
 
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_Jump(const FInputActionValue& InputActionValue);

@@ -37,7 +37,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Collab")
 	static UCollabAbilitySystemComponent* FindAbilitySystemComponent(const AActor* Actor) { return (Actor ? Actor->FindComponentByClass<UCollabAbilitySystemComponent>() : nullptr); }
 
-	void AbilityInputPressed(const FGameplayTag& InputTag);
+	void AbilityInputTriggered(const FGameplayTag& InputTag);
 	void AbilityInputReleased(const FGameplayTag& InputTag);
 
 	UFUNCTION(BlueprintCallable)

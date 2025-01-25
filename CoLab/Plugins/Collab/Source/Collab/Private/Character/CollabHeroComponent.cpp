@@ -288,7 +288,7 @@ void UCollabHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputCom
 					// This is where we actually bind and input action to a gameplay tag, which means that Gameplay Ability Blueprints will
 					// be triggered directly by these input actions Triggered events. 
 					TArray<uint32> BindHandles;
-					CollabIC->BindAbilityActions(LoadedInputConfig, this, &ThisClass::Input_AbilityInputTagPressed, &ThisClass::Input_AbilityInputTagReleased);
+					CollabIC->BindAbilityActions(LoadedInputConfig, this, &ThisClass::Input_AbilityInputTagTriggered);
 
 					CollabIC->BindNativeAction(LoadedInputConfig, CollabGameplayTags::InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Input_Move, /*bLogIfNotFound=*/ false);
 					CollabIC->BindNativeAction(LoadedInputConfig, CollabGameplayTags::InputTag_Jump, ETriggerEvent::Triggered, this, &ThisClass::Input_Jump, /*bLogIfNotFound=*/ false);
@@ -335,7 +335,7 @@ void UCollabHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputCom
 	// UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APawn*>(Pawn), NAME_BindInputsNow);
 }
 
-void UCollabHeroComponent::Input_AbilityInputTagPressed(FGameplayTag InputTag)
+void UCollabHeroComponent::Input_AbilityInputTagTriggered(const FInputActionInstance& InputActionInstance, const FGameplayTag InputTag)
 {
 	const ACollabPlayerState* CollabPlayerState = GetPlayerState<ACollabPlayerState>();
 	if (!IsValid(CollabPlayerState))
@@ -349,24 +349,16 @@ void UCollabHeroComponent::Input_AbilityInputTagPressed(FGameplayTag InputTag)
 		return;
 	}
 	
-	CollabASC->AbilityInputPressed(InputTag);
-}
-
-void UCollabHeroComponent::Input_AbilityInputTagReleased(FGameplayTag InputTag)
-{
-	const ACollabPlayerState* CollabPlayerState = GetPlayerState<ACollabPlayerState>();
-	if (!IsValid(CollabPlayerState))
+	const FInputActionValue& InputActionValue = InputActionInstance.GetValue();
+	const bool bValue = InputActionValue.Get<bool>();
+	if (bValue)
 	{
-		return;
+		CollabASC->AbilityInputTriggered(InputTag);
 	}
-
-	UCollabAbilitySystemComponent* CollabASC = CollabPlayerState->GetCollabAbilitySystemComponent();
-	if (!IsValid(CollabASC))
+	else
 	{
-		return;
+		CollabASC->AbilityInputReleased(InputTag);
 	}
-
-	CollabASC->AbilityInputReleased(InputTag);
 }
 
 void UCollabHeroComponent::Input_Move(const FInputActionValue& InputActionValue)

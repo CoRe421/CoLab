@@ -34,21 +34,3 @@ void ACollabPlayerController::AcknowledgePossession(APawn* NewPawn)
 {
 	Super::AcknowledgePossession(NewPawn);
 }
-
-void ACollabPlayerController::AbilityInputPressed(FGameplayTag InputTag)
-{
-	UCollabAbilitySystemComponent* CollabAbilitySystemComponent = GetCollabAbilitySystemComponent();
-	if (IsValid(CollabAbilitySystemComponent))
-	{
-		CollabAbilitySystemComponent->AbilityInputPressed(InputTag);
-	}
-}
-
-void ACollabPlayerController::AbilityInputReleased(FGameplayTag InputTag)
-{
-	UCollabAbilitySystemComponent* CollabAbilitySystemComponent = GetCollabAbilitySystemComponent();
-	if (IsValid(CollabAbilitySystemComponent))
-	{
-		CollabAbilitySystemComponent->AbilityInputReleased(InputTag);
-	}
-}

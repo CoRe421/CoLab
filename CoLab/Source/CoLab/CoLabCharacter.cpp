@@ -20,10 +20,18 @@ ACoLabCharacter::ACoLabCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
+	
+	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
+	Mesh3P = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CharacterMesh3P"));
+	Mesh3P->SetStaticMesh(BodyMesh);
+	Mesh3P->SetOwnerNoSee(true);
+	Mesh3P->SetupAttachment(GetCapsuleComponent());
+	Mesh3P->bCastDynamicShadow = true;
+	Mesh3P->CastShadow = true;
 		
 	// Create a CameraComponent	
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
-	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
+	FirstPersonCameraComponent->SetupAttachment(Mesh3P);
 	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
 
@@ -35,7 +43,6 @@ ACoLabCharacter::ACoLabCharacter()
 	Mesh1P->CastShadow = false;
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
-
 }
 
 void ACoLabCharacter::BeginPlay()

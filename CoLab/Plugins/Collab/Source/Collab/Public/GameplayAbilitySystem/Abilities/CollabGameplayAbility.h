@@ -14,7 +14,17 @@ class COLLAB_API UCollabGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
 
-public:
-	UPROPERTY(EditDefaultsOnly)
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
 	FGameplayTag InputTag;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta=(AllowPrivateAccess=true))
+	FScalableFloat Cost;
+
+public:
+	UFUNCTION(BlueprintPure, BlueprintCallable)
+	FGameplayTag GetInputTag() const;
+	
+	UFUNCTION(BlueprintPure, BlueprintCallable)
+	float GetCost(const int32 AbilityLevel = 1) const;
 };

@@ -28,6 +28,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString SerializedData;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TMap<FName, FString> MetaData;
 };
 
 class UCollabConfigData;

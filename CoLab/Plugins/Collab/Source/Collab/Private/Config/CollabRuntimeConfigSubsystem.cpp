@@ -56,6 +56,7 @@ void UCollabRuntimeConfigSubsystem::GetConfigPropertyData(UCollabConfigData* Con
 		
 		FCollabModifiablePropertyData NewPropertyData;
 		NewPropertyData.PropertyName = Property->NamePrivate;
+		NewPropertyData.MetaData = *Property->GetMetaDataMap();
 
 		TOptional<ECollabModifiablePropertyType> FoundType;
 		const uint64 CastFlags = Property->GetCastFlags();
@@ -246,10 +247,20 @@ FString UCollabRuntimeConfigSubsystem::SerializeConfigPropertyValue_Internal(con
 	{
 	case (ECollabModifiablePropertyType::Float):
 		{
-			const double* FloatValue = reinterpret_cast<const double*>(Value); -- Need to make this work with floats too
-			if (FloatValue)
+			const double* DoubleValue = reinterpret_cast<const double*>(Value);
+			const float* FloatValue = reinterpret_cast<const float*>(Value);
+			if (DoubleValue && !FMath::IsNearlyZero(*DoubleValue))
+			{
+				Result = FString::SanitizeFloat(*DoubleValue);
+			}
+			else if (FloatValue)
 			{
 				Result = FString::SanitizeFloat(*FloatValue);
+			}
+			else
+			{
+				ensure(false);
+				UE_LOG(LogCollab, Warning, TEXT("Cannot serialize float"));
 			}
 		} break;
 	case (ECollabModifiablePropertyType::Int32):

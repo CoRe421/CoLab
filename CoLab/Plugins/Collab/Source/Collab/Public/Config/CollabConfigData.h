@@ -14,7 +14,16 @@ class COLLAB_API UCollabConfigData : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 
+private:
+	bool bIsNetAddressable = false;
+
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FText DisplayName;
+
+public:
+	void SetNetAddressable();
+
+protected:
+	virtual bool IsNameStableForNetworking() const override;
 };

@@ -5,31 +5,94 @@
 
 #include "CollabLog.h"
 #include "Config/CollabConfigData.h"
+#include "Config/CollabConfigManager.h"
+#include "GameFramework/GameModeBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetStringLibrary.h"
+#include "Net/UnrealNetwork.h"
 #include "UObject/UnrealTypePrivate.h"
 
-UCollabConfigData* UCollabRuntimeConfigSubsystem::GetConfigData(const TSoftClassPtr<UCollabConfigData> ConfigDataClass)
+void UCollabRuntimeConfigSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
-	const TObjectPtr<UCollabConfigData>* FoundConfig = ConstructedConfigs.Find(ConfigDataClass);
-	if (FoundConfig && IsValid(*FoundConfig))
-	{
-		return *FoundConfig;
-	}
+	Super::Initialize(Collection);
 
-	const UClass* LoadedConfigClass = ConfigDataClass.LoadSynchronous();
-	if (!IsValid(LoadedConfigClass) || !LoadedConfigClass->IsChildOf<UCollabConfigData>())
+	FWorldDelegates::OnWorldInitializedActors.AddLambda([&](const FActorsInitializedParams& Params)
+	{
+		const UWorld* CurrentWorld = Params.World;
+		if (!IsValid(CurrentWorld) || CachedConfigManager.IsValid())
+		{
+			return;
+		}
+
+		if (CurrentWorld->WorldType != EWorldType::Game && CurrentWorld->WorldType != EWorldType::PIE)
+		{
+			return;
+		}
+
+		// No longer spawn config managers directly, causes issues with replication - CR
+		// This means that configs aren't preserved between levels, and only work when a config manager is placed in the level - CR
+		// TODO: Can explore duplicating config manager configs on level unloading, and initialize next config manager with it - CR
+
+		TryCacheConfigManager(CurrentWorld);
+	});
+	
+	const UWorld* CurrentWorld = GetWorld();
+	if (ensureAlways(IsValid(CurrentWorld)))
+	{
+		if (CurrentWorld->GetNetMode() < NM_Client)
+		{
+			FWorldDelegates::OnWorldBeginTearDown.AddLambda([&](const UWorld* World)
+			{
+				if (!CachedConfigManager.IsValid())
+				{
+					return;
+				}
+
+				if (!IsValid(World) || World->GetNetMode() >= NM_Client)
+				{
+					return;
+				}
+				
+				const TArray<TObjectPtr<UCollabConfigData>> ConfigManagerConfigs = CachedConfigManager->
+					ConstructedConfigs;
+
+				if (!ensureAlways(TempConfigData.IsEmpty()))
+				{
+					TempConfigData.Reset(ConfigManagerConfigs.Num());
+				}
+				else
+				{
+					TempConfigData.SetNumZeroed(ConfigManagerConfigs.Num());
+				}
+				
+				// We're commandeering the configs from the manager so we can store them in the next manager - CR
+				for (const TObjectPtr<UCollabConfigData>& Config : ConfigManagerConfigs)
+				{
+					const FName CurrentName = Config->GetFName();
+					Config->Rename(*CurrentName.ToString(), this);
+
+					TempConfigData.Emplace(Config);
+				}
+			});
+		}
+	}
+}
+
+UCollabConfigData* UCollabRuntimeConfigSubsystem::GetConfigData(UObject* WorldContextObject, const TSubclassOf<UCollabConfigData> ConfigDataClass)
+{
+	ACollabConfigManager* ConfigManager = GetConfigManager(WorldContextObject);
+	if (!IsValid(ConfigManager))
 	{
 		return nullptr;
 	}
 
-	UCollabConfigData* NewConfig = NewObject<UCollabConfigData>(this, LoadedConfigClass);
-	if (!ensureAlways(IsValid(NewConfig)))
+	UCollabConfigData* ConfigData = ConfigManager->FindOrCreateConfigData(ConfigDataClass);
+	if (!IsValid(ConfigData))
 	{
 		return nullptr;
 	}
 
-	ConstructedConfigs.Emplace(ConfigDataClass, NewConfig);
-	return NewConfig;
+	return ConfigData;
 }
 
 void UCollabRuntimeConfigSubsystem::GetConfigPropertyData(UCollabConfigData* ConfigData, TArray<struct FCollabModifiablePropertyData>& PropertyData)
@@ -92,10 +155,10 @@ void UCollabRuntimeConfigSubsystem::GetConfigPropertyData(UCollabConfigData* Con
 	}
 }
 
-void UCollabRuntimeConfigSubsystem::GetConfigPropertyDataFromClass(
+void UCollabRuntimeConfigSubsystem::GetConfigPropertyDataFromClass(UObject* WorldContextObject, 
 	const TSoftClassPtr<UCollabConfigData> ConfigDataClass, TArray<struct FCollabModifiablePropertyData>& PropertyData)
 {
-	UCollabConfigData* ConfigData = GetConfigData(ConfigDataClass);
+	UCollabConfigData* ConfigData = GetConfigData(WorldContextObject, ConfigDataClass.LoadSynchronous());
 	if (!IsValid(ConfigData))
 	{
 		return;
@@ -130,8 +193,9 @@ void UCollabRuntimeConfigSubsystem::SetConfigPropertyData(UCollabConfigData* Con
 		{
 		case ECollabModifiablePropertyType::Float:
 			{
-				float FloatValue = DeserializeConfigFloat(NewPropertyData.SerializedData);
-				FoundProperty->SetValue_InContainer(ConfigData, &FloatValue);
+				// Needs to be stored as a double because apparently floats in BPs are actually doubles - CR
+				double DoubleValue = DeserializeConfigFloat(NewPropertyData.SerializedData);
+				FoundProperty->SetValue_InContainer(ConfigData, &DoubleValue);
 			} break;
 		case ECollabModifiablePropertyType::Int32:
 			{
@@ -153,10 +217,10 @@ void UCollabRuntimeConfigSubsystem::SetConfigPropertyData(UCollabConfigData* Con
 	}
 }
 
-void UCollabRuntimeConfigSubsystem::SetConfigPropertyDataFromClass(const TSoftClassPtr<UCollabConfigData> ConfigDataClass,
-	const TArray<FCollabModifiablePropertyData>& PropertyData)
+void UCollabRuntimeConfigSubsystem::SetConfigPropertyDataFromClass(UObject* WorldContextObject,
+	const TSoftClassPtr<UCollabConfigData> ConfigDataClass, const TArray<FCollabModifiablePropertyData>& PropertyData)
 {
-	UCollabConfigData* ConfigData = GetConfigData(ConfigDataClass);
+	UCollabConfigData* ConfigData = GetConfigData(WorldContextObject, ConfigDataClass.LoadSynchronous());
 	if (!IsValid(ConfigData))
 	{
 		return;
@@ -167,8 +231,17 @@ void UCollabRuntimeConfigSubsystem::SetConfigPropertyDataFromClass(const TSoftCl
 
 float UCollabRuntimeConfigSubsystem::DeserializeConfigFloat(const FString& Value)
 {
+	double DoubleValue;
 	float FloatValue;
-	LexFromString(FloatValue, *Value);
+	LexFromString(DoubleValue, *Value);
+	if (FMath::IsNearlyZero(DoubleValue))
+	{
+		LexFromString(FloatValue, *Value);
+	}
+	else
+	{
+		FloatValue = DoubleValue;
+	}
 	return FloatValue;
 }
 
@@ -234,8 +307,8 @@ DEFINE_FUNCTION(UCollabRuntimeConfigSubsystem::execSerializeConfigPropertyValue)
 	}
 	P_NATIVE_END; // let profiler know native logic has ended.
 		
-	// we know our return type is float, and RESULT_PARAM is a void* that points to the return parameter of this function in the "parms memory"
-	// it's size is same as float too, because thats how BPVM works, so we want to re-interpret it as float and set our result variable to it.
+	// we know our return type is FString, and RESULT_PARAM is a void* that points to the return parameter of this function in the "parms memory"
+	// it's size is same as FString too, because thats how BPVM works, so we want to re-interpret it as FString and set our result variable to it.
 	*reinterpret_cast<FString*>(RESULT_PARAM) = Result;
 }
 
@@ -287,4 +360,47 @@ FString UCollabRuntimeConfigSubsystem::SerializeConfigPropertyValue_Internal(con
 	}
 
 	return Result;
+}
+
+ACollabConfigManager* UCollabRuntimeConfigSubsystem::GetConfigManager(const UObject* WorldContext)
+{
+	if (!CachedConfigManager.IsValid())
+	{
+		if (!TryCacheConfigManager(WorldContext))
+		{
+			return nullptr;
+		}
+	}
+	
+	return CachedConfigManager.Get();
+}
+
+bool UCollabRuntimeConfigSubsystem::TryCacheConfigManager(const UObject* WorldContext)
+{
+	if (CachedConfigManager.IsValid())
+	{
+		return true;
+	}
+
+	if (!IsValid(WorldContext))
+	{
+		return false;
+	}
+
+	AActor* FoundActor = UGameplayStatics::GetActorOfClass(WorldContext, ACollabConfigManager::StaticClass());
+	ACollabConfigManager* FoundConfigManager = Cast<ACollabConfigManager>(FoundActor);
+	if (!ensureAlways(IsValid(FoundConfigManager)))
+	{
+		UE_LOG(LogCollab, Error, TEXT("Config Manager not found! Was game instance initialized on server?"))
+		return false;
+	}
+
+	if (FoundConfigManager->GetNetMode())
+	{
+		FoundConfigManager->InitializeConfigData(TempConfigData);
+		TempConfigData.Empty();
+	}
+	
+	CachedConfigManager = FoundConfigManager;
+	return true;
 }

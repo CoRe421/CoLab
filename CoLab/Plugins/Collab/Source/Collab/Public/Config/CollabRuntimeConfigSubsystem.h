@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Subsystems/EngineSubsystem.h"
+#include "Subsystems/GameInstanceSubsystem.h"
 #include "CollabRuntimeConfigSubsystem.generated.h"
 
 UENUM(BlueprintType)
@@ -38,27 +38,34 @@ class UCollabConfigData;
  * 
  */
 UCLASS()
-class COLLAB_API UCollabRuntimeConfigSubsystem final : public UEngineSubsystem
+class COLLAB_API UCollabRuntimeConfigSubsystem final : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 
 private:
 	UPROPERTY()
-	TMap<TSoftClassPtr<UCollabConfigData>, TObjectPtr<UCollabConfigData>> ConstructedConfigs;
+	TWeakObjectPtr<class ACollabConfigManager> CachedConfigManager;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UCollabConfigData>> TempConfigData;
+
+private:
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 public:
-	UFUNCTION(BlueprintCallable, Category="Collab|Config")
-	UCollabConfigData* GetConfigData(const TSoftClassPtr<UCollabConfigData> ConfigDataClass);
+	// For some reason 'DeterminesOutputType' doesn't work with TSoftClassPtr<> so need to use a hard ref here - CR
+	UFUNCTION(BlueprintCallable, Category="Collab|Config", meta=(DeterminesOutputType="ConfigDataClass", WorldContext="WorldContextObject"))
+	UCollabConfigData* GetConfigData(UObject* WorldContextObject, const TSubclassOf<UCollabConfigData> ConfigDataClass);
 
 	UFUNCTION(BlueprintCallable, Category="Collab|Config")
 	void GetConfigPropertyData(UCollabConfigData* ConfigData, TArray<struct FCollabModifiablePropertyData>& PropertyData);
-	UFUNCTION(BlueprintCallable, Category="Collab|Config")
-	void GetConfigPropertyDataFromClass(const TSoftClassPtr<UCollabConfigData> ConfigDataClass, TArray<struct FCollabModifiablePropertyData>& PropertyData);
+	UFUNCTION(BlueprintCallable, Category="Collab|Config", meta=(WorldContext="WorldContextObject"))
+	void GetConfigPropertyDataFromClass(UObject* WorldContextObject, const TSoftClassPtr<UCollabConfigData> ConfigDataClass, TArray<struct FCollabModifiablePropertyData>& PropertyData);
 
 	UFUNCTION(BlueprintCallable, Category="Collab|Config")
 	void SetConfigPropertyData(UCollabConfigData* ConfigData, const TArray<struct FCollabModifiablePropertyData>& PropertyData);
-	UFUNCTION(BlueprintCallable, Category="Collab|Config")
-	void SetConfigPropertyDataFromClass(const TSoftClassPtr<UCollabConfigData> ConfigDataClass, const TArray<struct FCollabModifiablePropertyData>& PropertyData);
+	UFUNCTION(BlueprintCallable, Category="Collab|Config", meta=(WorldContext="WorldContextObject"))
+	void SetConfigPropertyDataFromClass(UObject* WorldContextObject, const TSoftClassPtr<UCollabConfigData> ConfigDataClass, const TArray<struct FCollabModifiablePropertyData>& PropertyData);
 
 	
 	UFUNCTION(BlueprintPure, Category="Collab|Config")
@@ -74,4 +81,7 @@ public:
 
 private:
 	static FString SerializeConfigPropertyValue_Internal(const ECollabModifiablePropertyType& Type, const void* Value);
+
+	ACollabConfigManager* GetConfigManager(const UObject* WorldContext);
+	bool TryCacheConfigManager(const UObject* WorldContext);
 };

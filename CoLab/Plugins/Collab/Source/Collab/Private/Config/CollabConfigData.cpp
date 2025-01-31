@@ -2,3 +2,13 @@
 
 
 #include "Config/CollabConfigData.h"
+
+void UCollabConfigData::SetNetAddressable()
+{
+	bIsNetAddressable = true;
+}
+
+bool UCollabConfigData::IsNameStableForNetworking() const
+{
+	return bIsNetAddressable || Super::IsNameStableForNetworking();
+}

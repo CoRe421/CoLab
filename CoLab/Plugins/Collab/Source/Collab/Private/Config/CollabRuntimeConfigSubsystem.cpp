@@ -395,10 +395,10 @@ bool UCollabRuntimeConfigSubsystem::TryCacheConfigManager(const UObject* WorldCo
 		return false;
 	}
 
-	if (FoundConfigManager->GetNetMode())
+	if (FoundConfigManager->GetNetMode() < NM_Client && !TempConfigData.IsEmpty())
 	{
 		FoundConfigManager->InitializeConfigData(TempConfigData);
-		TempConfigData.Empty();
+		TempConfigData.Reset();
 	}
 	
 	CachedConfigManager = FoundConfigManager;

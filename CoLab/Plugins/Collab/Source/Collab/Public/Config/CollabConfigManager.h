@@ -31,7 +31,7 @@ private:
 
 	virtual void BeginPlay() override;
 
-	virtual bool IsNameStableForNetworking() const override;
+	virtual bool IsSupportedForNetworking() const override;
 
 private:
 	// Used by UCollabRuntimeConfigSubsystem to preserve configs across levels - CR

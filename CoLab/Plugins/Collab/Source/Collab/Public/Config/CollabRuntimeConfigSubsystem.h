@@ -51,6 +51,10 @@ private:
 
 private:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void Deinitialize() override;
+
+	void OnWorldActorsInitialized(const FActorsInitializedParams& Params);
+	void OnWorldBeginTeardown(UWorld* World);
 
 public:
 	// For some reason 'DeterminesOutputType' doesn't work with TSoftClassPtr<> so need to use a hard ref here - CR
@@ -84,4 +88,5 @@ private:
 
 	ACollabConfigManager* GetConfigManager(const UObject* WorldContext);
 	bool TryCacheConfigManager(const UObject* WorldContext);
+	bool TrySpawnConfigManager(const UObject* WorldContext);
 };

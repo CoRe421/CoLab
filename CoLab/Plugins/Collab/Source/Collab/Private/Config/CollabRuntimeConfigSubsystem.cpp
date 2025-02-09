@@ -15,66 +15,93 @@
 void UCollabRuntimeConfigSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-
-	FWorldDelegates::OnWorldInitializedActors.AddLambda([&](const FActorsInitializedParams& Params)
-	{
-		const UWorld* CurrentWorld = Params.World;
-		if (!IsValid(CurrentWorld) || CachedConfigManager.IsValid())
-		{
-			return;
-		}
-
-		if (CurrentWorld->WorldType != EWorldType::Game && CurrentWorld->WorldType != EWorldType::PIE)
-		{
-			return;
-		}
-
-		// No longer spawn config managers directly, causes issues with replication - CR
-		// This means that configs aren't preserved between levels, and only work when a config manager is placed in the level - CR
-		// TODO: Can explore duplicating config manager configs on level unloading, and initialize next config manager with it - CR
-
-		TryCacheConfigManager(CurrentWorld);
-	});
 	
 	const UWorld* CurrentWorld = GetWorld();
-	if (ensureAlways(IsValid(CurrentWorld)))
+	if (!ensureAlways(IsValid(CurrentWorld)))
 	{
-		if (CurrentWorld->GetNetMode() < NM_Client)
-		{
-			FWorldDelegates::OnWorldBeginTearDown.AddLambda([&](const UWorld* World)
-			{
-				if (!CachedConfigManager.IsValid())
-				{
-					return;
-				}
+		return;
+	}
 
-				if (!IsValid(World) || World->GetNetMode() >= NM_Client)
-				{
-					return;
-				}
+	const ENetMode WorldNetMode = CurrentWorld->GetNetMode();
+	if (WorldNetMode < NM_Client)
+	{
+		// For some reason these still fire on clients, but keeping the if statement for intent - CR
+		FWorldDelegates::OnWorldInitializedActors.AddUObject(this, &ThisClass::OnWorldActorsInitialized);
+		FWorldDelegates::OnWorldBeginTearDown.AddUObject(this, &ThisClass::OnWorldBeginTeardown);
+	}
+}
+
+void UCollabRuntimeConfigSubsystem::Deinitialize()
+{
+	Super::Deinitialize();
+
+	int32 NumRemoved = 0;
+	NumRemoved = FWorldDelegates::OnWorldInitializedActors.RemoveAll(this);
+	UE_LOG(LogCollab, Log, TEXT("World Initialized delegates removed: %i"), NumRemoved);
+	NumRemoved = FWorldDelegates::OnWorldBeginTearDown.RemoveAll(this);
+	UE_LOG(LogCollab, Log, TEXT("World teardown delegates removed: %i"), NumRemoved);
+}
+
+void UCollabRuntimeConfigSubsystem::OnWorldActorsInitialized(const FActorsInitializedParams& Params)
+{
+	const UWorld* CurrentWorld = Params.World;
+	if (!IsValid(CurrentWorld) || CachedConfigManager.IsValid())
+	{
+		return;
+	}
+
+	if (CurrentWorld->WorldType != EWorldType::Game && CurrentWorld->WorldType != EWorldType::PIE)
+	{
+		return;
+	}
+
+	
+	const ENetMode WorldNetMode = CurrentWorld->GetNetMode();
+	if (WorldNetMode >= NM_Client)
+	{
+		return;
+	}
+	
+	ensureAlways(TrySpawnConfigManager(CurrentWorld));
+}
+
+void UCollabRuntimeConfigSubsystem::OnWorldBeginTeardown(UWorld* World)
+{
+	if (!CachedConfigManager.IsValid())
+	{
+		return;
+	}
+
+	if (!IsValid(World) || World->GetNetMode() >= NM_Client)
+	{
+		return;
+	}
+	
+	const ENetMode WorldNetMode = World->GetNetMode();
+	if (WorldNetMode >= NM_Client)
+	{
+		return;
+	}
 				
-				const TArray<TObjectPtr<UCollabConfigData>> ConfigManagerConfigs = CachedConfigManager->
-					ConstructedConfigs;
+	const TArray<TObjectPtr<UCollabConfigData>> ConfigManagerConfigs = CachedConfigManager->
+		ConstructedConfigs;
 
-				if (!ensureAlways(TempConfigData.IsEmpty()))
-				{
-					TempConfigData.Reset(ConfigManagerConfigs.Num());
-				}
-				else
-				{
-					TempConfigData.SetNumZeroed(ConfigManagerConfigs.Num());
-				}
+	if (!ensureAlways(TempConfigData.IsEmpty()))
+	{
+		TempConfigData.Reset(ConfigManagerConfigs.Num());
+	}
+	else
+	{
+		TempConfigData.SetNumZeroed(ConfigManagerConfigs.Num());
+	}
 				
-				// We're commandeering the configs from the manager so we can store them in the next manager - CR
-				for (const TObjectPtr<UCollabConfigData>& Config : ConfigManagerConfigs)
-				{
-					const FName CurrentName = Config->GetFName();
-					Config->Rename(*CurrentName.ToString(), this);
+	// We're commandeering the configs from the manager so we can store them in the next manager - CR
+	for (const TObjectPtr<UCollabConfigData>& Config : ConfigManagerConfigs)
+	{
+		const FName CurrentName = Config->GetFName();
+		Config->Rename(*CurrentName.ToString(), this);
 
-					TempConfigData.Emplace(Config);
-				}
-			});
-		}
+		TempConfigData.Emplace(Config);
 	}
 }
 
@@ -137,7 +164,7 @@ void UCollabRuntimeConfigSubsystem::GetConfigPropertyData(UCollabConfigData* Con
 		} 
 		else
 		{
-			ensure(false);
+			// ensure(false);
 			UE_LOG(LogCollab, Warning, TEXT("Cannot de-serialize property type"));
 			continue;
 		}
@@ -193,9 +220,17 @@ void UCollabRuntimeConfigSubsystem::SetConfigPropertyData(UCollabConfigData* Con
 		{
 		case ECollabModifiablePropertyType::Float:
 			{
+				float FloatValue = DeserializeConfigFloat(NewPropertyData.SerializedData);
 				// Needs to be stored as a double because apparently floats in BPs are actually doubles - CR
 				double DoubleValue = DeserializeConfigFloat(NewPropertyData.SerializedData);
-				FoundProperty->SetValue_InContainer(ConfigData, &DoubleValue);
+				if (FoundProperty->IsA(FFloatProperty::StaticClass()))
+				{
+					FoundProperty->SetValue_InContainer(ConfigData, &FloatValue);
+				}
+				else
+				{
+					FoundProperty->SetValue_InContainer(ConfigData, &DoubleValue);
+				}
 			} break;
 		case ECollabModifiablePropertyType::Int32:
 			{
@@ -215,6 +250,8 @@ void UCollabRuntimeConfigSubsystem::SetConfigPropertyData(UCollabConfigData* Con
 			} break;
 		}
 	}
+
+	// CachedConfigManager->ForceNetUpdate();
 }
 
 void UCollabRuntimeConfigSubsystem::SetConfigPropertyDataFromClass(UObject* WorldContextObject,
@@ -387,20 +424,69 @@ bool UCollabRuntimeConfigSubsystem::TryCacheConfigManager(const UObject* WorldCo
 		return false;
 	}
 
-	AActor* FoundActor = UGameplayStatics::GetActorOfClass(WorldContext, ACollabConfigManager::StaticClass());
-	ACollabConfigManager* FoundConfigManager = Cast<ACollabConfigManager>(FoundActor);
-	if (!ensureAlways(IsValid(FoundConfigManager)))
+	UWorld* World = WorldContext->GetWorld();
+	if (!IsValid(World))
 	{
-		UE_LOG(LogCollab, Error, TEXT("Config Manager not found! Was game instance initialized on server?"))
 		return false;
 	}
 
-	if (FoundConfigManager->GetNetMode() < NM_Client && !TempConfigData.IsEmpty())
+	const ENetMode WorldNetMode = World->GetNetMode();
+
+	AActor* FoundActor = UGameplayStatics::GetActorOfClass(WorldContext, ACollabConfigManager::StaticClass());
+	ACollabConfigManager* FoundConfigManager = Cast<ACollabConfigManager>(FoundActor);
+	if (!IsValid(FoundConfigManager))
+	{
+		UE_LOG(LogCollab, Error, TEXT("Config Manager not found! Was game instance initialized on server?"));
+		return false;
+	}
+	
+	CachedConfigManager = FoundConfigManager;
+	return true;
+}
+
+bool UCollabRuntimeConfigSubsystem::TrySpawnConfigManager(const UObject* WorldContext)
+{
+	if (CachedConfigManager.IsValid())
+	{
+		return true;
+	}
+
+	if (!IsValid(WorldContext))
+	{
+		return false;
+	}
+
+	UWorld* World = WorldContext->GetWorld();
+	if (!IsValid(World))
+	{
+		return false;
+	}
+	
+	const ENetMode WorldNetMode = World->GetNetMode();
+	if (!ensureAlways(WorldNetMode < NM_Client))
+	{
+		UE_LOG(LogCollab, Error, TEXT("Cannot spawn config manager if not on the server!"));
+		return false;
+	}
+
+	AActor* FoundActor = UGameplayStatics::GetActorOfClass(WorldContext, ACollabConfigManager::StaticClass());
+	ACollabConfigManager* FoundConfigManager = Cast<ACollabConfigManager>(FoundActor);
+	if (IsValid(FoundConfigManager))
+	{
+		return true;
+	}
+
+	FoundConfigManager = World->SpawnActor<ACollabConfigManager>();
+	if (!ensureAlways(IsValid(FoundConfigManager)))
+	{
+		return false;
+	}
+	
+	if (!TempConfigData.IsEmpty())
 	{
 		FoundConfigManager->InitializeConfigData(TempConfigData);
 		TempConfigData.Reset();
 	}
-	
-	CachedConfigManager = FoundConfigManager;
+
 	return true;
 }

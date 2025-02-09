@@ -5,6 +5,7 @@
 
 #include "CollabLog.h"
 #include "Config/CollabConfigData.h"
+#include "Engine/ActorChannel.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -23,6 +24,7 @@ ACollabConfigManager::ACollabConfigManager()
 
 	bReplicates = true;
 	bReplicateUsingRegisteredSubObjectList = true;
+	bAlwaysRelevant = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	SetRootComponent(RootComponent);
@@ -66,27 +68,12 @@ UCollabConfigData* ACollabConfigManager::FindOrCreateConfigData(const TSubclassO
 void ACollabConfigManager::BeginPlay()
 {
 	Super::BeginPlay();
-
-	const auto NetMode = GetNetMode();
-	int32 Test = 0;
-	if (NetMode >= NM_Client)
-	{
-		Test += 1;
-	}
-	else
-	{
-		Test += 2;
-	}
-
-	Test += 1;
-	UE_LOG(LogCollab, Display, TEXT("World Type: %i"), Test);
 }
 
-bool ACollabConfigManager::IsNameStableForNetworking() const
+bool ACollabConfigManager::IsSupportedForNetworking() const
 {
-	bool Test = false;
-	Test = Super::IsNameStableForNetworking();
-	return Test;
+	const bool Test = Super::IsSupportedForNetworking();
+	return true;
 }
 
 void ACollabConfigManager::InitializeConfigData(const TArray<TObjectPtr<UCollabConfigData>>& ConfigData)
@@ -126,16 +113,16 @@ UCollabConfigData* ACollabConfigManager::ConstructNewConfigData(const TSubclassO
 		return nullptr;
 	}
 	
-	const FName SafeName = MakeUniqueObjectName(this, UCollabConfigData::StaticClass(), ConfigDataClass->GetFName());
-	UCollabConfigData* NewConfig = NewObject<UCollabConfigData>(this, ConfigDataClass, SafeName, RF_NoFlags, ConfigDataTemplate);
+	// const FName SafeName = MakeUniqueObjectName(this, UCollabConfigData::StaticClass(), ConfigDataClass->GetFName());
+	UCollabConfigData* NewConfig = NewObject<UCollabConfigData>(this, ConfigDataClass, NAME_None, RF_NoFlags, ConfigDataTemplate);
 	if (!ensureAlways(IsValid(NewConfig)))
 	{
 		return nullptr;
 	}
-
-	ConstructedConfigs.Emplace(NewConfig);
+	
 	AddReplicatedSubObject(NewConfig);
-	NewConfig->SetNetAddressable();
+	ConstructedConfigs.Emplace(NewConfig);
+	
 	return NewConfig;
 }
 

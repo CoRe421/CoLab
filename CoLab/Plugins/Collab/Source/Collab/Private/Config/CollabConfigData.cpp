@@ -3,12 +3,29 @@
 
 #include "Config/CollabConfigData.h"
 
-void UCollabConfigData::SetNetAddressable()
+#include "CollabLog.h"
+#include "Net/UnrealNetwork.h"
+
+UCollabConfigData::UCollabConfigData()
 {
-	bIsNetAddressable = true;
 }
 
-bool UCollabConfigData::IsNameStableForNetworking() const
+bool UCollabConfigData::IsSupportedForNetworking() const
 {
-	return bIsNetAddressable || Super::IsNameStableForNetworking();
+	const bool bResult = Super::IsSupportedForNetworking();
+	return true;
+}
+
+void UCollabConfigData::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	UClass* Class = GetClass();
+	const UBlueprintGeneratedClass* BPClass = Cast<UBlueprintGeneratedClass>(Class);
+	if (!IsValid(BPClass))
+	{
+		return;
+	}
+
+	BPClass->GetLifetimeBlueprintReplicationList(OutLifetimeProps);
 }

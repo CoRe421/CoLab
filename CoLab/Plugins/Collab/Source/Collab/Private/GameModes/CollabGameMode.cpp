@@ -13,20 +13,31 @@
 #include "Kismet/GameplayStatics.h"
 #include "Player/CollabPlayerState.h"
 
-const UCollabGameData* ACollabGameMode::GetDefaultGameData(const AActor* WorldContext)
+ACollabGameMode* ACollabGameMode::GetCollabGameMode(const AActor* WorldContext)
 {
 	if (!IsValid(WorldContext))
 	{
 		return nullptr;
 	}
-
+	
 	const UWorld* World = WorldContext->GetWorld();
 	if (!IsValid(World))
 	{
 		return nullptr;
 	}
 
-	const ACollabGameMode* GameMode = Cast<ACollabGameMode>(World->GetAuthGameMode());
+	ACollabGameMode* GameMode = Cast<ACollabGameMode>(World->GetAuthGameMode());
+	if (!IsValid(GameMode))
+	{
+		return nullptr;
+	}
+
+	return GameMode;
+}
+
+const UCollabGameData* ACollabGameMode::GetDefaultGameData(const AActor* WorldContext)
+{
+	const ACollabGameMode* GameMode = GetCollabGameMode(WorldContext);
 	if (!IsValid(GameMode))
 	{
 		return nullptr;

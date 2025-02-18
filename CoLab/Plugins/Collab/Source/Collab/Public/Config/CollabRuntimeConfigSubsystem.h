@@ -62,12 +62,17 @@ public:
 	UCollabConfigData* GetConfigData(UObject* WorldContextObject, const TSubclassOf<UCollabConfigData> ConfigDataClass);
 
 	UFUNCTION(BlueprintCallable, Category="Collab|Config")
-	void GetConfigPropertyData(UCollabConfigData* ConfigData, TArray<struct FCollabModifiablePropertyData>& PropertyData);
+	void GetConfigPropertyData(UCollabConfigData* ConfigData, TArray<FCollabModifiablePropertyData>& PropertyData);
 	UFUNCTION(BlueprintCallable, Category="Collab|Config", meta=(WorldContext="WorldContextObject"))
 	void GetConfigPropertyDataFromClass(UObject* WorldContextObject, const TSoftClassPtr<UCollabConfigData> ConfigDataClass, TArray<struct FCollabModifiablePropertyData>& PropertyData);
+	
+	UFUNCTION(BlueprintCallable, Category="Collab|Config")
+	UPARAM(DisplayName="bSuccess") bool TryGetDefaultDataForProperty(UCollabConfigData* ConfigData, const FName& PropertyName, FCollabModifiablePropertyData& DefaultPropertyData);
+	UFUNCTION(BlueprintCallable, Category="Collab|Config", meta=(WorldContext="WorldContextObject"))
+	UPARAM(DisplayName="bSuccess") bool TryGetDefaultDataForPropertyFromClass(UObject* WorldContextObject, const TSoftClassPtr<UCollabConfigData> ConfigDataClass, const FName& PropertyName, FCollabModifiablePropertyData& DefaultPropertyData);
 
 	UFUNCTION(BlueprintCallable, Category="Collab|Config")
-	void SetConfigPropertyData(UCollabConfigData* ConfigData, const TArray<struct FCollabModifiablePropertyData>& PropertyData);
+	void SetConfigPropertyData(UCollabConfigData* ConfigData, const TArray<FCollabModifiablePropertyData>& PropertyData);
 	UFUNCTION(BlueprintCallable, Category="Collab|Config", meta=(WorldContext="WorldContextObject"))
 	void SetConfigPropertyDataFromClass(UObject* WorldContextObject, const TSoftClassPtr<UCollabConfigData> ConfigDataClass, const TArray<struct FCollabModifiablePropertyData>& PropertyData);
 
@@ -84,9 +89,11 @@ public:
 	DECLARE_FUNCTION(execSerializeConfigPropertyValue);
 
 private:
-	static FString SerializeConfigPropertyValue_Internal(const ECollabModifiablePropertyType& Type, const void* Value);
+	static FString SerializeConfigPropertyValue_Internal(const uint64& PropertyCastFlags, const void* Value);
 
 	ACollabConfigManager* GetConfigManager(const UObject* WorldContext);
 	bool TryCacheConfigManager(const UObject* WorldContext);
 	bool TrySpawnConfigManager(const UObject* WorldContext);
+
+	bool TryGetPropertyDataFromProperty(const FProperty* Property, const UObject* Container, FCollabModifiablePropertyData& PropertyData) const;
 };

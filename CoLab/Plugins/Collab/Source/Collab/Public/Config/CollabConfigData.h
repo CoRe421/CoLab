@@ -6,6 +6,10 @@
 #include "Engine/DataAsset.h"
 #include "CollabConfigData.generated.h"
 
+#ifdef ALLOW_METADATA_MACRO
+	#define META_PROPERTY AddMetaProperty
+#endif
+
 /**
  * 
  */
@@ -15,8 +19,19 @@ class COLLAB_API UCollabConfigData : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	// Properties whose names END with the meta specifier, START with the name of another property, and ARE NOT
+	// instance editable will be added to that other property's metadata when config properties are accessed - CR
+	static inline FString MetaSpecifier = "Meta";
+
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(META_PROPERTY))
 	FText DisplayName;
+	
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
+	float FloatTruncTest;
+	
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
+	double DoubleTruncTest;
 
 public:
 	UCollabConfigData();

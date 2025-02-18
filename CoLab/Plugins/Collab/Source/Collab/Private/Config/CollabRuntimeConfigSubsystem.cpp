@@ -134,49 +134,61 @@ void UCollabRuntimeConfigSubsystem::GetConfigPropertyData(UCollabConfigData* Con
 	{
 		return;
 	}
-	
+
+	TArray<TTuple<FString, const FProperty*>> MetaProperties;
+	TArray<const FProperty*> ConfigProperties;
 	for (TFieldIterator<FProperty> PropIt(ConfigDataClass); PropIt; ++PropIt)
 	{
-		FProperty* Property = *PropIt;
+		const FProperty* Property = *PropIt;
 
 		if (!ensureAlways(Property))
 		{
 			continue;
 		}
-		
-		FCollabModifiablePropertyData NewPropertyData;
-		NewPropertyData.PropertyName = Property->NamePrivate;
-		NewPropertyData.MetaData = *Property->GetMetaDataMap();
 
-		TOptional<ECollabModifiablePropertyType> FoundType;
-		const uint64 CastFlags = Property->GetCastFlags();
-		if (CastFlags & (CASTCLASS_FDoubleProperty | CASTCLASS_FFloatProperty))
+		const EPropertyFlags PropertyFlags = Property->GetPropertyFlags();
+		// If not instance editable, don't allow modification - CR
+		if (PropertyFlags & CPF_DisableEditOnInstance)
 		{
-			FoundType = ECollabModifiablePropertyType::Float;
+			const FString PropertyName = Property->GetName();
+
+			// Meta properties name's need to end with the MetaSpecifier, and not instance editable - CR
+			if (PropertyName.EndsWith(UCollabConfigData::MetaSpecifier))
+			{
+				MetaProperties.Emplace(PropertyName, Property);
+			}
 		}
-		else if (CastFlags & CASTCLASS_FIntProperty)
-		{
-			FoundType = ECollabModifiablePropertyType::Int32;
-		}
-		else if (CastFlags & CASTCLASS_FBoolProperty)
-		{
-			FoundType = ECollabModifiablePropertyType::Bool;
-		} 
 		else
 		{
-			// ensure(false);
-			UE_LOG(LogCollab, Warning, TEXT("Cannot de-serialize property type"));
-			continue;
+			ConfigProperties.Emplace(Property);
 		}
+	}
 
-		if (!FoundType.IsSet())
+	for (const FProperty* ConfigProperty : ConfigProperties)
+	{
+		FCollabModifiablePropertyData NewPropertyData;
+		if (!TryGetPropertyDataFromProperty(ConfigProperty, ConfigData, NewPropertyData))
 		{
 			continue;
 		}
+		
+		const FString PropertyNameString = NewPropertyData.PropertyName.ToString();
+		for (const TTuple<FString, const FProperty*>& MetaPropertyPair : MetaProperties)
+		{
+			const FString MetaPropertyName = MetaPropertyPair.Key;
+			const FProperty* MetaProperty = MetaPropertyPair.Value;
+			if (!ensureAlways(MetaProperty) || !MetaPropertyName.StartsWith(PropertyNameString))
+			{
+				continue;
+			}
 
-		NewPropertyData.Type = FoundType.GetValue();
-		const void* Value = Property->ContainerPtrToValuePtr<void>(ConfigData);
-		NewPropertyData.SerializedData = SerializeConfigPropertyValue_Internal(NewPropertyData.Type, Value);
+			const FString MetaNameMeta = MetaPropertyName.RightChop(PropertyNameString.Len());
+			const FString MetaName = MetaNameMeta.LeftChop(UCollabConfigData::MetaSpecifier.Len());
+			const void* MetaValue = MetaProperty->ContainerPtrToValuePtr<void>(ConfigData);
+			const uint64 MetaCastFlags = MetaProperty->GetCastFlags();
+			const FString MetaStringValue = SerializeConfigPropertyValue_Internal(MetaCastFlags, MetaValue);
+			NewPropertyData.MetaData.Emplace(MetaName, MetaStringValue);
+		}
 
 		PropertyData.Emplace(NewPropertyData);
 	}
@@ -194,8 +206,67 @@ void UCollabRuntimeConfigSubsystem::GetConfigPropertyDataFromClass(UObject* Worl
 	GetConfigPropertyData(ConfigData, PropertyData);
 }
 
+bool UCollabRuntimeConfigSubsystem::TryGetDefaultDataForProperty(UCollabConfigData* ConfigData, const FName& PropertyName,
+	FCollabModifiablePropertyData& DefaultPropertyData)
+{
+	if (!IsValid(ConfigData))
+	{
+		return false;
+	}
+
+	const UClass* ConfigDataClass = ConfigData->GetClass();
+	if (!IsValid(ConfigDataClass))
+	{
+		return false;
+	}
+
+	const UCollabConfigData* DefaultConfigData = ConfigDataClass->GetDefaultObject<UCollabConfigData>();
+	if (!IsValid(DefaultConfigData))
+	{
+		return false;
+	}
+	
+	for (TFieldIterator<FProperty> PropIt(ConfigDataClass); PropIt; ++PropIt)
+	{
+		const FProperty* DefaultProperty = *PropIt;
+
+		if (!ensureAlways(DefaultProperty))
+		{
+			continue;
+		}
+
+		const FName DefaultPropertyName = DefaultProperty->GetFName();
+		if (DefaultPropertyName != PropertyName)
+		{
+			continue;
+		}
+
+		if (!TryGetPropertyDataFromProperty(DefaultProperty, DefaultConfigData, DefaultPropertyData))
+		{
+			continue;
+		}
+		
+		return true;
+	}
+
+	return false;
+}
+
+bool UCollabRuntimeConfigSubsystem::TryGetDefaultDataForPropertyFromClass(UObject* WorldContextObject,
+	const TSoftClassPtr<UCollabConfigData> ConfigDataClass, const FName& PropertyName,
+	FCollabModifiablePropertyData& DefaultPropertyData)
+{
+	UCollabConfigData* ConfigData = GetConfigData(WorldContextObject, ConfigDataClass.LoadSynchronous());
+	if (!IsValid(ConfigData))
+	{
+		return false;
+	}
+
+	return TryGetDefaultDataForProperty(ConfigData, PropertyName, DefaultPropertyData);
+}
+
 void UCollabRuntimeConfigSubsystem::SetConfigPropertyData(UCollabConfigData* ConfigData,
-	const TArray<FCollabModifiablePropertyData>& PropertyData)
+                                                          const TArray<FCollabModifiablePropertyData>& PropertyData)
 {
 	if (!IsValid(ConfigData))
 	{
@@ -221,16 +292,22 @@ void UCollabRuntimeConfigSubsystem::SetConfigPropertyData(UCollabConfigData* Con
 		case ECollabModifiablePropertyType::Float:
 			{
 				float FloatValue = DeserializeConfigFloat(NewPropertyData.SerializedData);
-				// Needs to be stored as a double because apparently floats in BPs are actually doubles - CR
 				double DoubleValue = DeserializeConfigFloat(NewPropertyData.SerializedData);
-				if (FoundProperty->IsA(FFloatProperty::StaticClass()))
-				{
-					FoundProperty->SetValue_InContainer(ConfigData, &FloatValue);
-				}
-				else
+
+				// const bool bIsNativeProperty = FoundProperty->IsNative();
+				if (FoundProperty->IsA(FDoubleProperty::StaticClass()))
 				{
 					FoundProperty->SetValue_InContainer(ConfigData, &DoubleValue);
 				}
+				else
+				{
+					FoundProperty->SetValue_InContainer(ConfigData, &FloatValue);
+				}
+
+				FoundProperty->GetValue_InContainer(ConfigData, &FloatValue);
+				FoundProperty->GetValue_InContainer(ConfigData, &DoubleValue);
+
+				const double Dummy = FloatValue + DoubleValue;
 			} break;
 		case ECollabModifiablePropertyType::Int32:
 			{
@@ -315,17 +392,23 @@ DEFINE_FUNCTION(UCollabRuntimeConfigSubsystem::execSerializeConfigPropertyValue)
 	const void* ValuePtr = Property->ContainerPtrToValuePtr<void>(Stack.MostRecentPropertyContainer);
 	//Check type
 	TOptional<ECollabModifiablePropertyType> PropertyType;
-	if (Property->IsA(FDoubleProperty::StaticClass()) || Property->IsA(FFloatProperty::StaticClass()))
+	const uint64 CastFlags = Property->GetCastFlags();
+	if (CastFlags & (CASTCLASS_FDoubleProperty | CASTCLASS_FFloatProperty))
 	{
 		PropertyType = ECollabModifiablePropertyType::Float;
 	}
-	else if (Property->IsA(FIntProperty::StaticClass()))
+	else if (CastFlags & CASTCLASS_FIntProperty)
 	{
 		PropertyType = ECollabModifiablePropertyType::Int32;
 	}
-	else if (Property->IsA(FBoolProperty::StaticClass()))
+	else if (CastFlags & CASTCLASS_FBoolProperty)
 	{
 		PropertyType = ECollabModifiablePropertyType::Bool;
+	} 
+	else
+	{
+		// ensure(false);
+		UE_LOG(LogCollab, Warning, TEXT("Cannot serialize property type"));
 	}
 		
 	// increment instruction pointer unless it's null.
@@ -335,7 +418,7 @@ DEFINE_FUNCTION(UCollabRuntimeConfigSubsystem::execSerializeConfigPropertyValue)
 	P_NATIVE_BEGIN; // this macro lets profiler/insights know we're now evaluating a native logic, so it wont be displayed as Blueprint time.
 	if (PropertyType.IsSet())
 	{
-		Result = SerializeConfigPropertyValue_Internal(PropertyType.GetValue(), ValuePtr);
+		Result = SerializeConfigPropertyValue_Internal(CastFlags, ValuePtr);
 	}
 	else
 	{
@@ -349,52 +432,108 @@ DEFINE_FUNCTION(UCollabRuntimeConfigSubsystem::execSerializeConfigPropertyValue)
 	*reinterpret_cast<FString*>(RESULT_PARAM) = Result;
 }
 
-FString UCollabRuntimeConfigSubsystem::SerializeConfigPropertyValue_Internal(const ECollabModifiablePropertyType& Type,
+FString UCollabRuntimeConfigSubsystem::SerializeConfigPropertyValue_Internal(const uint64& PropertyCastFlags,
 	const void* Value)
 {
-	FString Result;
-	switch (Type)
+	if (!ensureAlways(Value))
 	{
-	case (ECollabModifiablePropertyType::Float):
-		{
-			const double* DoubleValue = reinterpret_cast<const double*>(Value);
-			const float* FloatValue = reinterpret_cast<const float*>(Value);
-			if (DoubleValue && !FMath::IsNearlyZero(*DoubleValue))
-			{
-				Result = FString::SanitizeFloat(*DoubleValue);
-			}
-			else if (FloatValue)
-			{
-				Result = FString::SanitizeFloat(*FloatValue);
-			}
-			else
-			{
-				ensure(false);
-				UE_LOG(LogCollab, Warning, TEXT("Cannot serialize float"));
-			}
-		} break;
-	case (ECollabModifiablePropertyType::Int32):
-		{
-			const int32* IntValue = reinterpret_cast<const int32*>(Value);
-			if (IntValue)
-			{
-				Result = FString::FromInt(*IntValue);
-			}
-		} break;
-	case (ECollabModifiablePropertyType::Bool):
-		{
-			const bool* BoolValue = reinterpret_cast<const bool*>(Value);
-			if (BoolValue)
-			{
-				Result = UKismetStringLibrary::Conv_BoolToString(*BoolValue);
-			}
-		} break;
-	default:
-		{
-			ensure(false);
-			UE_LOG(LogCollab, Warning, TEXT("Cannot deserialize property type"));
-		} break;
+		return FString();
 	}
+	
+	FString Result;
+	if (PropertyCastFlags & CASTCLASS_FDoubleProperty)
+	{
+		const double* DoubleValue = reinterpret_cast<const double*>(Value);
+		check(DoubleValue);
+		Result = FString::SanitizeFloat(*DoubleValue);
+	}
+	else if (PropertyCastFlags & CASTCLASS_FFloatProperty)
+	{
+		const float* FloatValue = reinterpret_cast<const float*>(Value);
+		check(FloatValue);
+		Result = FString::SanitizeFloat(*FloatValue);
+	}
+	else if (PropertyCastFlags & CASTCLASS_FIntProperty)
+	{
+		const int32* IntValue = reinterpret_cast<const int32*>(Value);
+		check(IntValue);
+		Result = FString::SanitizeFloat(*IntValue);
+	}
+	else if (PropertyCastFlags & CASTCLASS_FBoolProperty)
+	{
+		const bool* BoolValue = reinterpret_cast<const bool*>(Value);
+		check(BoolValue);
+		Result = UKismetStringLibrary::Conv_BoolToString(*BoolValue);
+	} 
+	else
+	{
+		ensure(false);
+		UE_LOG(LogCollab, Warning, TEXT("Cannot serialize property type"));
+	}
+	// switch (Type)
+	// {
+	// case (ECollabModifiablePropertyType::Float):
+	// 	{
+	// 		constexpr int BIG_EXPONENT = 8;
+	// 		constexpr float ZERO_TOLERANCE = 0.0001f;
+	// 		constexpr float EXCESSIVE_PRECISION_DIGITS = 3.f;
+	// 		const float ExcessiveCoefficient = FMath::Pow(10, EXCESSIVE_PRECISION_DIGITS);
+	// 		
+	// 		const float* FloatValue = reinterpret_cast<const float*>(Value);
+	// 		check(FloatValue);
+	// 		const bool bFloatIsZero = FMath::IsNearlyZero(*FloatValue, ZERO_TOLERANCE);
+	// 		const bool bFloatIsBig = FMath::LogX(10, *FloatValue) > BIG_EXPONENT;
+	// 		const double BigTruncFloat = FMath::TruncToInt(static_cast<double>(*FloatValue * ExcessiveCoefficient));
+	// 		const double BigFloat = *FloatValue * ExcessiveCoefficient;
+	// 		const bool bFloatHasExcessPrecision = !FMath::IsNearlyEqual(BigTruncFloat, BigFloat);
+	// 		
+	// 		const double* DoubleValue = reinterpret_cast<const double*>(Value);
+	// 		check(DoubleValue);
+	// 		const bool bDoubleIsZero = FMath::IsNearlyZero(*DoubleValue, ZERO_TOLERANCE);
+	// 		const bool bDoubleIsBig = FMath::LogX(10, *DoubleValue) > BIG_EXPONENT;
+	// 		const double BigTruncDouble = FMath::TruncToInt(static_cast<double>(*DoubleValue * ExcessiveCoefficient));
+	// 		const double BigDouble = *DoubleValue * ExcessiveCoefficient;
+	// 		const bool bDoubleHasExcessPrecision = !FMath::IsNearlyEqual(BigTruncDouble, BigDouble);
+	//
+	// 		// const int Coefficient = FMath::Pow(10.f, NUM_DIGITS_EXCESSIVE);
+	// 		// double TempDouble = *DoubleValue * Coefficient;
+	// 		// const double DoubleRemainder = FMath::Modf(TempDouble, &TempDouble);
+	// 		// const bool bHasExcessiveValues = !FMath::IsNearlyZero(DoubleRemainder) && !FMath::IsNearlyEqual(DoubleRemainder, 1);
+	// 		if (!bDoubleIsZero && !bDoubleIsBig && (!bDoubleHasExcessPrecision || bFloatHasExcessPrecision))
+	// 		{
+	// 			Result = FString::SanitizeFloat(*DoubleValue);
+	// 		}
+	// 		else if (ensureAlways((!bFloatIsZero || !bFloatHasExcessPrecision) && !bFloatIsBig))
+	// 		{
+	// 			Result = FString::SanitizeFloat(*FloatValue);
+	// 		}
+	// 		else
+	// 		{
+	// 			return FString::SanitizeFloat(0.0f);
+	// 		}
+	// 	} break;
+	// case (ECollabModifiablePropertyType::Int32):
+	// 	{
+	// 		const int32* IntValue = reinterpret_cast<const int32*>(Value);
+	// 		if (IntValue)
+	// 		{
+	// 			Result = FString::FromInt(*IntValue);
+	// 		}
+	// 	} break;
+	// case (ECollabModifiablePropertyType::Bool):
+	// 	{
+	// 		const bool* BoolValue = reinterpret_cast<const bool*>(Value);
+	// 		if (BoolValue)
+	// 		{
+	// 			Result = UKismetStringLibrary::Conv_BoolToString(*BoolValue);
+	// 		}
+	// 	} break;
+	// default:
+	// 	{
+	// 		ensure(false);
+	// 		UE_LOG(LogCollab, Warning, TEXT("Cannot deserialize property type"));
+	// 	} break;
+	// }
 
 	return Result;
 }
@@ -487,6 +626,50 @@ bool UCollabRuntimeConfigSubsystem::TrySpawnConfigManager(const UObject* WorldCo
 		FoundConfigManager->InitializeConfigData(TempConfigData);
 		TempConfigData.Reset();
 	}
+
+	return true;
+}
+
+bool UCollabRuntimeConfigSubsystem::TryGetPropertyDataFromProperty(const FProperty* Property, const UObject* Container, FCollabModifiablePropertyData& PropertyData) const
+{
+	if (!ensureAlways(Property))
+	{
+		return false;
+	}
+		
+	PropertyData.PropertyName = Property->GetFName();
+	const TMap<FName, FString> PropertyMetaData = *Property->GetMetaDataMap();
+	PropertyData.MetaData = PropertyMetaData;
+
+	TOptional<ECollabModifiablePropertyType> FoundType;
+	const uint64 CastFlags = Property->GetCastFlags();
+	if (CastFlags & (CASTCLASS_FDoubleProperty | CASTCLASS_FFloatProperty))
+	{
+		FoundType = ECollabModifiablePropertyType::Float;
+	}
+	else if (CastFlags & CASTCLASS_FIntProperty)
+	{
+		FoundType = ECollabModifiablePropertyType::Int32;
+	}
+	else if (CastFlags & CASTCLASS_FBoolProperty)
+	{
+		FoundType = ECollabModifiablePropertyType::Bool;
+	} 
+	else
+	{
+		// ensure(false);
+		UE_LOG(LogCollab, Warning, TEXT("Cannot de-serialize property type"));
+		return false;
+	}
+
+	if (!FoundType.IsSet())
+	{
+		return false;
+	}
+
+	PropertyData.Type = FoundType.GetValue();
+	const void* Value = Property->ContainerPtrToValuePtr<void>(Container);
+	PropertyData.SerializedData = SerializeConfigPropertyValue_Internal(CastFlags, Value);
 
 	return true;
 }

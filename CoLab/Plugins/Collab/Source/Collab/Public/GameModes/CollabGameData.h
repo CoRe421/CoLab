@@ -23,8 +23,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess), Category="Collab|Default")
 	TSoftObjectPtr<class UWorld> GameLevel;
 	
-	UPROPERTY(EditDefaultsOnly, meta=(AllowPrivateAccess), Category="Collab|Settings")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess), Category="Collab|Settings")
 	TMap<FGameplayTag, TSoftClassPtr<UCollabGameplayEffect>> GlobalTagEffects;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess), Category="Collab|Config")
+	TSet<TSoftClassPtr<class UCollabConfigData>> ConfigurableData;
 
 public:	
 	UFUNCTION(BlueprintCallable)

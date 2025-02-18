@@ -27,6 +27,10 @@ protected:
 	TSoftObjectPtr<const UCollabGameData> DefaultGameData;
 	
 public:
+	UFUNCTION(BlueprintPure, Category = "Collab|Game", meta=(CompactNodeTitle="Get Collab Game Mode"))
+	static ACollabGameMode* GetCollabGameMode(const AActor* WorldContext);
+	
+	UFUNCTION(BlueprintPure, Category = "Collab|Game", meta=(CompactNodeTitle="Get Collab Game Data"))
 	static const UCollabGameData* GetDefaultGameData(const AActor* WorldContext);
 	
 	UFUNCTION(BlueprintCallable, Category = "Collab|Pawn")

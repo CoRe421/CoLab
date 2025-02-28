@@ -10,6 +10,7 @@
 #include "GameplayEffectTypes.h"
 #include "Character/CollabAttributeComponent.h"
 #include "Character/CollabDeathComponent.h"
+#include "Character/CollabMovementComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameplayAbilitySystem/CollabAbilitySystemComponent.h"
 
@@ -26,10 +27,21 @@ ACollabCharacterBase::ACollabCharacterBase()
 	// DeathComponent->OnDeathStarted.AddDynamic(this, &ThisClass::OnDeathStarted);
 	// DeathComponent->OnDeathFinished.AddDynamic(this, &ThisClass::OnDeathFinished);
 
-	
+	CollabMovementComponent = CreateDefaultSubobject<UCollabMovementComponent>(TEXT("CollabMovementComponent"));
+	if (ensureAlways(CollabMovementComponent))
+	{
+		UCapsuleComponent* FoundCapsuleComponent = GetCapsuleComponent();
+		if (ensure(FoundCapsuleComponent))
+		{
+			CollabMovementComponent->UpdatedComponent = FoundCapsuleComponent;
+		}
+	}
 
 	PawnExtensionComponent = CreateDefaultSubobject<UCollabPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
-	PawnExtensionComponent->OnAbilitySystemInit.AddUniqueDynamic(this, &ThisClass::OnAbilitySystemInitialized);
+	if (ensureAlways(PawnExtensionComponent))
+	{
+		PawnExtensionComponent->OnAbilitySystemInit.AddUniqueDynamic(this, &ThisClass::OnAbilitySystemInitialized);
+	}
 	
 	AttributeComponent = CreateDefaultSubobject<UCollabAttributeComponent>(TEXT("AttributeComponent"));
 }
@@ -38,6 +50,16 @@ ACollabCharacterBase::ACollabCharacterBase()
 void ACollabCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+UPawnMovementComponent* ACollabCharacterBase::GetMovementComponent() const
+{
+	return CollabMovementComponent;
+}
+
+void ACollabCharacterBase::OnAbilitySystemInitialized(UCollabAbilitySystemComponent* CollabASC)
+{
+	
 }
 
 // Called every frame

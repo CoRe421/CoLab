@@ -13,6 +13,14 @@ namespace CollabHealthGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Gameplay_Event_DealtDamage, "Gameplay.Event.DealtDamage", "Target has been dealt damage.");
 }
 
+void UCollabHealthAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(UCollabHealthAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UCollabHealthAttributeSet, Health, COND_None, REPNOTIFY_Always);
+}
+
 void UCollabHealthAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabHealthAttributeSet, MaxHealth, OldMaxHealth);
@@ -37,14 +45,6 @@ void UCollabHealthAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHe
 	}
 
 	bOutOfHealth = (CurrentHealth <= 0.0f);
-}
-
-void UCollabHealthAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME_CONDITION_NOTIFY(UCollabHealthAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(UCollabHealthAttributeSet, Health, COND_None, REPNOTIFY_Always);
 }
 
 void UCollabHealthAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)

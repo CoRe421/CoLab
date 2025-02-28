@@ -9,6 +9,7 @@
 #include "CollabCharacterBase.generated.h"
 
 
+class UCollabMovementComponent;
 class UCollabAttributeComponent;
 class UCollabAbilitySystemComponent;
 
@@ -25,6 +26,9 @@ public:
 	TObjectPtr<UCollabPawnExtensionComponent> PawnExtensionComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
+	TObjectPtr<UCollabMovementComponent> CollabMovementComponent;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
 	TObjectPtr<UCollabAttributeComponent> AttributeComponent;
 
 public:
@@ -35,8 +39,10 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual UPawnMovementComponent* GetMovementComponent() const override;
+
 	UFUNCTION()
-	virtual void OnAbilitySystemInitialized(UCollabAbilitySystemComponent* CollabASC) {};
+	virtual void OnAbilitySystemInitialized(UCollabAbilitySystemComponent* CollabASC);
 
 public:
 	// Called every frame

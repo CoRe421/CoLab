@@ -16,26 +16,26 @@
 
 
 // Sets default values
-ACollabCharacterBase::ACollabCharacterBase()
+ACollabCharacterBase::ACollabCharacterBase(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UCollabMovementComponent>(CharacterMovementComponentName))
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	
 	// PawnExtComponent = CreateDefaultSubobject<UCollabPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
 
 	// DeathComponent = CreateDefaultSubobject<UCollabDeathComponent>(TEXT("DeathComponent"));
 	// DeathComponent->OnDeathStarted.AddDynamic(this, &ThisClass::OnDeathStarted);
 	// DeathComponent->OnDeathFinished.AddDynamic(this, &ThisClass::OnDeathFinished);
 
-	CollabMovementComponent = CreateDefaultSubobject<UCollabMovementComponent>(TEXT("CollabMovementComponent"));
-	if (ensureAlways(CollabMovementComponent))
-	{
-		UCapsuleComponent* FoundCapsuleComponent = GetCapsuleComponent();
-		if (ensure(FoundCapsuleComponent))
-		{
-			CollabMovementComponent->UpdatedComponent = FoundCapsuleComponent;
-		}
-	}
+	// CollabMovementComponent = CreateDefaultSubobject<UCollabMovementComponent>(TEXT("CollabMovementComponent"));
+	// if (ensureAlways(CollabMovementComponent))
+	// {
+	// 	UCapsuleComponent* FoundCapsuleComponent = GetCapsuleComponent();
+	// 	if (ensure(FoundCapsuleComponent))
+	// 	{
+	// 		CollabMovementComponent->UpdatedComponent = FoundCapsuleComponent;
+	// 	}
+	// }
 
 	PawnExtensionComponent = CreateDefaultSubobject<UCollabPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
 	if (ensureAlways(PawnExtensionComponent))
@@ -50,11 +50,6 @@ ACollabCharacterBase::ACollabCharacterBase()
 void ACollabCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-}
-
-UPawnMovementComponent* ACollabCharacterBase::GetMovementComponent() const
-{
-	return CollabMovementComponent;
 }
 
 void ACollabCharacterBase::OnAbilitySystemInitialized(UCollabAbilitySystemComponent* CollabASC)

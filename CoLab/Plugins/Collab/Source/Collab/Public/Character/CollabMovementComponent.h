@@ -7,6 +7,8 @@
 #include "CollabMovementComponent.generated.h"
 
 
+struct FGameplayAttribute;
+struct FGameplayEffectSpec;
 class UCollabMovementAttributeSet;
 class UCollabAbilitySystemComponent;
 
@@ -23,6 +25,9 @@ protected:
 	// Health set used by this component.
 	UPROPERTY()
 	TWeakObjectPtr<const UCollabMovementAttributeSet> MovementSet;
+
+	UPROPERTY()
+	float TargetJumpHeight = 0;
 
 public:
 	// Sets default values for this component's properties
@@ -45,4 +50,11 @@ public:
 	// Uninitialize the component, clearing any references to the ability system.
 	UFUNCTION(BlueprintCallable, Category = "Collab|Movement")
 	void UninitializeFromAbilitySystem();
+
+	virtual void OnMovementAttributeChanged(AActor* EffectInstigator, AActor* EffectCauser,
+		const FGameplayEffectSpec* EffectSpec, float EffectMagnitude, const FGameplayAttribute& Attribute,
+		float OldValue, float NewValue);
+
+private:
+	void OnJumpValuesUpdated();
 };

@@ -41,6 +41,7 @@ void UCollabAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCall
 	AActor* Instigator = EffectContext.GetOriginalInstigator();
 	AActor* Causer = EffectContext.GetEffectCauser();
 	
-	OnAttributeChanged.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, OldValue, NewValue);
+	OnAttributeChanged.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude,
+		Data.EvaluatedData.Attribute, OldValue, NewValue);
 	
 }

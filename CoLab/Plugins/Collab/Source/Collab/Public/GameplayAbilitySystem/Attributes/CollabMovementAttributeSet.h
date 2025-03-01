@@ -35,6 +35,18 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_Mass, meta=(AllowPrivateAccess))
 	FGameplayAttributeData Mass;
 	ATTRIBUTE_ACCESSORS(UCollabMovementAttributeSet, Mass)
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_GravityScale, meta=(AllowPrivateAccess))
+	FGameplayAttributeData GravityScale;
+	ATTRIBUTE_ACCESSORS(UCollabMovementAttributeSet, GravityScale)
+	UPROPERTY(BlueprintReadOnly, Category = "Movement|Air", ReplicatedUsing = OnRep_AirControl, meta=(AllowPrivateAccess))
+	FGameplayAttributeData AirControl;
+	ATTRIBUTE_ACCESSORS(UCollabMovementAttributeSet, AirControl)
+	UPROPERTY(BlueprintReadOnly, Category = "Movement|Air", ReplicatedUsing = OnRep_AirControlBoostMultiplier, meta=(AllowPrivateAccess))
+	FGameplayAttributeData AirControlBoostMultiplier;
+	ATTRIBUTE_ACCESSORS(UCollabMovementAttributeSet, AirControlBoostMultiplier)
+	UPROPERTY(BlueprintReadOnly, Category = "Movement|Air", ReplicatedUsing = OnRep_AirControlBoostVelocityThreshold, meta=(AllowPrivateAccess))
+	FGameplayAttributeData AirControlBoostVelocityThreshold;
+	ATTRIBUTE_ACCESSORS(UCollabMovementAttributeSet, AirControlBoostVelocityThreshold)
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -44,4 +56,12 @@ public:
 	virtual void OnRep_JumpHeight(const FGameplayAttributeData& OldJumpHeight);
 	UFUNCTION()
 	virtual void OnRep_Mass(const FGameplayAttributeData& OldMass);
+	UFUNCTION()
+	virtual void OnRep_GravityScale(const FGameplayAttributeData& OldGravityScale);
+	UFUNCTION()
+	virtual void OnRep_AirControl(const FGameplayAttributeData& OldAirControl);
+	UFUNCTION()
+	virtual void OnRep_AirControlBoostMultiplier(const FGameplayAttributeData& OldAirControlBoostMultiplier);
+	UFUNCTION()
+	virtual void OnRep_AirControlBoostVelocityThreshold(const FGameplayAttributeData& OldAirControlBoostVelocityThreshold);
 };

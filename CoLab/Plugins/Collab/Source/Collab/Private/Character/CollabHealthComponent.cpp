@@ -163,13 +163,16 @@ void UCollabHealthComponent::OnUnregister()
 }
 
 void UCollabHealthComponent::HandleHealthChanged(AActor* DamageInstigator, AActor* DamageCauser,
-	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
+	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, const FGameplayAttribute& Attribute,
+	float OldValue, float NewValue)
 {
 	BroadcastDamaged(DamageInstigator, DamageCauser, DamageEffectSpec, DamageMagnitude);
 }
 
 
-void UCollabHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue)
+void UCollabHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser,
+	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, const FGameplayAttribute& Attribute,
+	float OldValue, float NewValue)
 {
 #if WITH_SERVER_CODE
 	if (AbilitySystemComponent.IsValid() && DamageEffectSpec)

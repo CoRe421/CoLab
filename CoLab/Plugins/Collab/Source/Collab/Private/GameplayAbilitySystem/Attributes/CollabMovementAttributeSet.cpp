@@ -12,6 +12,7 @@ void UCollabMovementAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimePro
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, MovementSpeed, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, JumpHeight, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, Mass, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, GravityScale, COND_None, REPNOTIFY_Always)
 }
 
 void UCollabMovementAttributeSet::OnRep_MovementSpeed(const FGameplayAttributeData& OldMovementSpeed)
@@ -30,4 +31,30 @@ void UCollabMovementAttributeSet::OnRep_Mass(const FGameplayAttributeData& OldMa
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabMovementAttributeSet, Mass, OldMass);
 	COLLABATTRIBUTE_REPNOTIFY(GetMassAttribute(), OldMass.GetCurrentValue(), GetMass());
+}
+
+void UCollabMovementAttributeSet::OnRep_GravityScale(const FGameplayAttributeData& OldGravityScale)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabMovementAttributeSet, GravityScale, OldGravityScale);
+	COLLABATTRIBUTE_REPNOTIFY(GetGravityScaleAttribute(), OldGravityScale.GetCurrentValue(), GetGravityScale());
+}
+
+void UCollabMovementAttributeSet::OnRep_AirControl(const FGameplayAttributeData& OldAirControl)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabMovementAttributeSet, AirControl, OldAirControl);
+	COLLABATTRIBUTE_REPNOTIFY(GetAirControlAttribute(), OldAirControl.GetCurrentValue(), GetAirControl());
+}
+
+void UCollabMovementAttributeSet::OnRep_AirControlBoostMultiplier(
+	const FGameplayAttributeData& OldAirControlBoostMultiplier)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabMovementAttributeSet, AirControlBoostMultiplier, OldAirControlBoostMultiplier);
+	COLLABATTRIBUTE_REPNOTIFY(GetAirControlBoostMultiplierAttribute(), OldAirControlBoostMultiplier.GetCurrentValue(), GetAirControlBoostMultiplier());
+}
+
+void UCollabMovementAttributeSet::OnRep_AirControlBoostVelocityThreshold(
+	const FGameplayAttributeData& OldAirControlBoostVelocityThreshold)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabMovementAttributeSet, AirControlBoostVelocityThreshold, OldAirControlBoostVelocityThreshold);
+	COLLABATTRIBUTE_REPNOTIFY(GetAirControlBoostVelocityThresholdAttribute(), OldAirControlBoostVelocityThreshold.GetCurrentValue(), GetAirControlBoostVelocityThreshold());
 }

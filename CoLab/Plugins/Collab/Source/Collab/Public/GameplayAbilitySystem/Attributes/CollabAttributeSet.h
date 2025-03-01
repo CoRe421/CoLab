@@ -18,7 +18,7 @@ GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 #define COLLABATTRIBUTE_REPNOTIFY(Attribute, OldValue, NewValue) \
 { \
 	OnAttributeChanged_BP.Broadcast(Attribute, OldValue, NewValue); \
-	OnAttributeChanged.Broadcast(nullptr, nullptr, nullptr, NewValue - OldValue, OldValue, NewValue); \
+	OnAttributeChanged.Broadcast(nullptr, nullptr, nullptr, NewValue - OldValue, Attribute, OldValue, NewValue); \
 }
 
 class UCollabAbilitySystemComponent;
@@ -32,8 +32,9 @@ class UCollabAbilitySystemComponent;
  * @param OldValue			The value of the attribute before it was changed
  * @param NewValue			The value after it was changed
 */
-DECLARE_MULTICAST_DELEGATE_SixParams(FNativeEvent_CollabAttributeEvent, AActor* /*EffectInstigator*/, AActor* /*EffectCauser*/,
-	const FGameplayEffectSpec* /*EffectSpec*/, float /*EffectMagnitude*/, float /*OldValue*/, float /*NewValue*/);
+DECLARE_MULTICAST_DELEGATE_SevenParams(FNativeEvent_CollabAttributeEvent, AActor* /*EffectInstigator*/, AActor* /*EffectCauser*/,
+	const FGameplayEffectSpec* /*EffectSpec*/, float /*EffectMagnitude*/, const FGameplayAttribute& /*Attribute*/,
+	float /*OldValue*/, float /*NewValue*/);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FDynamicEvent_OnAttributeChanged, const FGameplayAttribute&, Attribute,
 	const float, OldValue, const float, NewValue);

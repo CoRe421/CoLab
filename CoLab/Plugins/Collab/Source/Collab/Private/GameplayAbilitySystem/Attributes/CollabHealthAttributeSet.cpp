@@ -30,18 +30,19 @@ void UCollabHealthAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& Ol
 void UCollabHealthAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabHealthAttributeSet, Health, OldHealth);
-	COLLABATTRIBUTE_REPNOTIFY(GetHealthAttribute(), OldHealth.GetCurrentValue(), GetHealth());
+	const FGameplayAttribute& HealthAttribute = GetHealthAttribute();
+	COLLABATTRIBUTE_REPNOTIFY(HealthAttribute, OldHealth.GetCurrentValue(), GetHealth());
 
 	const float CurrentHealth = GetHealth();
 	const float EstimatedMagnitude = CurrentHealth - OldHealth.GetCurrentValue();
 	
 	BP_OnHealthChanged.Broadcast(CurrentHealth, MaxHealth.GetCurrentValue());
-	OnHealthChanged.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, OldHealth.GetCurrentValue(), CurrentHealth);
+	OnHealthChanged.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, HealthAttribute, OldHealth.GetCurrentValue(), CurrentHealth);
 
 	if ((CurrentHealth <= 0.0f) && !bOutOfHealth)
 	{
 		BP_OnOutOfHealth.Broadcast();
-		OnOutOfHealth.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, OldHealth.GetCurrentValue(), CurrentHealth);
+		OnOutOfHealth.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, HealthAttribute, OldHealth.GetCurrentValue(), CurrentHealth);
 	}
 
 	bOutOfHealth = (CurrentHealth <= 0.0f);
@@ -84,35 +85,41 @@ void UCollabHealthAttributeSet::PostGameplayEffectExecute(const FGameplayEffectM
 	const FGameplayEffectContextHandle& EffectContext = Data.EffectSpec.GetEffectContext();
 	AActor* Instigator = EffectContext.GetOriginalInstigator();
 	AActor* Causer = EffectContext.GetEffectCauser();
-	
-	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+
+	const float OldHealth = GetHealth(); 
+	const float CurrentMaxHealth = GetMaxHealth();
+
+	const FGameplayAttribute& DamageAttribute = GetDamageAttribute();
+	if (Data.EvaluatedData.Attribute == DamageAttribute)
 	{
 		const float LocalDamageDone = GetDamage();
 		SetDamage(0.0f);
 
 		if (LocalDamageDone > 0.0f)
 		{
-			const float NewHealth = GetHealth() - LocalDamageDone;
-			SetHealth(FMath::Clamp(NewHealth, 0.0f, GetMaxHealth()));
+			const float ModifiedHealth = OldHealth - LocalDamageDone;
+			SetHealth(FMath::Clamp(ModifiedHealth, 0.0f, CurrentMaxHealth));
 		}
 	}
+	
+	const float NewHealth = GetHealth();
+	const FGameplayAttribute& HealthAttribute = GetHealthAttribute();
 
 	// Use this function to trigger in-game reactions to attribute changes
-	const float CurrentHealth = GetHealth();
-	if (CurrentHealth != HealthBeforeAttributeChange)
+	if (NewHealth != HealthBeforeAttributeChange)
 	{
-		BP_OnHealthChanged.Broadcast(CurrentHealth, GetMaxHealth());
-		OnHealthChanged.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, HealthBeforeAttributeChange, GetHealth());
+		BP_OnHealthChanged.Broadcast(NewHealth, CurrentMaxHealth);
+		OnHealthChanged.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, HealthAttribute, HealthBeforeAttributeChange, NewHealth);
 	}
 
-	if ((CurrentHealth <= 0.0f) && !bOutOfHealth)
+	if ((NewHealth <= 0.0f) && !bOutOfHealth)
 	{
 		BP_OnOutOfHealth.Broadcast();
-		OnOutOfHealth.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, HealthBeforeAttributeChange, GetHealth());
+		OnOutOfHealth.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, HealthAttribute, HealthBeforeAttributeChange, NewHealth);
 	}
 
 	// Check health again in case an event above changed it.
-	bOutOfHealth = CurrentHealth <= 0.0f;
+	bOutOfHealth = NewHealth <= 0.0f;
 }
 
 void UCollabHealthAttributeSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const

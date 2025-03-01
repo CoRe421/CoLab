@@ -62,7 +62,7 @@ void UCollabMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 void UCollabMovementComponent::InitializeWithAbilitySystem(UCollabAbilitySystemComponent* InASC)
 {
-	if (!ensureAlways(IsValid(CollabASC)))
+	if (!ensureAlways(IsValid(InASC)))
 	{
 		return;
 	}
@@ -86,7 +86,10 @@ void UCollabMovementComponent::InitializeWithAbilitySystem(UCollabAbilitySystemC
 	MovementSet = AbilitySystemComponent->GetSet<UCollabMovementAttributeSet>();
 	if (MovementSet.IsValid())
 	{
-		MovementSet->OnAttributeChanged
+		MovementSet->OnAttributeChanged.AddUObject(this, &ThisClass::OnMovementAttributeChanged);
+
+		TargetJumpHeight = MovementSet->GetJumpHeight();
+		OnJumpValuesUpdated();
 	}
 	else
 	{
@@ -98,12 +101,72 @@ void UCollabMovementComponent::UninitializeFromAbilitySystem()
 {
 	if (MovementSet.IsValid())
 	{
-		// HealthSet->OnHealthChanged.RemoveAll(this);
-		// // HealthSet->OnMaxHealthChanged.RemoveAll(this);
-		// HealthSet->OnOutOfHealth.RemoveAll(this);
+		MovementSet->OnAttributeChanged.RemoveAll(this);
 	}
 
 	MovementSet = nullptr;
 	AbilitySystemComponent = nullptr;
+}
+
+void UCollabMovementComponent::OnMovementAttributeChanged(AActor* EffectInstigator, AActor* EffectCauser,
+	const FGameplayEffectSpec* EffectSpec, float EffectMagnitude, const FGameplayAttribute& Attribute, float OldValue,
+	float NewValue)
+{
+	if (Attribute == MovementSet->GetMovementSpeedAttribute())
+	{
+		MaxWalkSpeed = NewValue;
+	}
+	else if (Attribute == MovementSet->GetJumpHeightAttribute())
+	{
+		TargetJumpHeight = NewValue;
+		OnJumpValuesUpdated();
+	}
+	else if (Attribute == MovementSet->GetMassAttribute())
+	{
+		Mass = NewValue;
+	}
+	else if (Attribute == MovementSet->GetGravityScaleAttribute())
+	{
+		GravityScale = NewValue;
+		OnJumpValuesUpdated();
+	}
+	else if (Attribute == MovementSet->GetAirControlAttribute())
+	{
+		AirControl = NewValue;
+	}
+	else if (Attribute == MovementSet->GetAirControlBoostMultiplierAttribute())
+	{
+		AirControlBoostMultiplier = NewValue;
+	}
+	else if (Attribute == MovementSet->GetAirControlBoostVelocityThresholdAttribute())
+	{
+		AirControlBoostVelocityThreshold = NewValue;
+	}
+	else
+	{
+		UE_LOG(LogCollab, Error, TEXT("Movement set attribute not handled"))
+	}
+}
+
+void UCollabMovementComponent::OnJumpValuesUpdated()
+{
+	const AActor* Owner = AbilitySystemComponent->GetOwner();
+	if (!ensureAlways(IsValid(Owner)))
+	{
+		return;
+	}
+	const UWorld* World = Owner->GetWorld();
+	if (!ensureAlways(IsValid(World)))
+	{
+		return;
+	}
+	const float Gravity = World->GetGravityZ();
+	const float OwnerGravity = Gravity * GravityScale;
+
+	// x == JumpInitialVelocity
+	// JumpHeight = -x/2 * x/g
+	// JumpHeight = x(-1/2g)
+	// x = -2g(JumpHeight)
+	JumpZVelocity = -2 * OwnerGravity * TargetJumpHeight;
 }
 

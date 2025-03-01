@@ -6,6 +6,7 @@
 #include "Components/GameFrameworkComponent.h"
 #include "CollabHealthComponent.generated.h"
 
+struct FGameplayAttribute;
 struct FGameplayEffectSpec;
 class UCollabHealthAttributeSet;
 class UCollabAbilitySystemComponent;
@@ -71,9 +72,13 @@ protected:
 	virtual void OnRegister() override;
 	virtual void OnUnregister() override;
 
-	virtual void HandleHealthChanged(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
+	virtual void HandleHealthChanged(AActor* DamageInstigator, AActor* DamageCauser,
+		const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, const FGameplayAttribute& Attribute,
+		float OldValue, float NewValue);
 	// virtual void HandleMaxHealthChanged(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
-	virtual void HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser, const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, float OldValue, float NewValue);
+	virtual void HandleOutOfHealth(AActor* DamageInstigator, AActor* DamageCauser,
+		const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, const FGameplayAttribute& Attribute,
+		float OldValue, float NewValue);
 
 private:
 	void BroadcastDamaged(AActor* DamageInstigator, AActor* DamageCauser,

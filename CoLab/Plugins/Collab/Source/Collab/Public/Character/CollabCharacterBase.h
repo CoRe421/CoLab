@@ -25,21 +25,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
 	TObjectPtr<UCollabPawnExtensionComponent> PawnExtensionComponent;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
-	TObjectPtr<UCollabMovementComponent> CollabMovementComponent;
+	// UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
+	// TObjectPtr<UCollabMovementComponent> CollabMovementComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
 	TObjectPtr<UCollabAttributeComponent> AttributeComponent;
 
 public:
 	// Sets default values for this pawn's properties
-	ACollabCharacterBase();
+	ACollabCharacterBase(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	virtual UPawnMovementComponent* GetMovementComponent() const override;
 
 	UFUNCTION()
 	virtual void OnAbilitySystemInitialized(UCollabAbilitySystemComponent* CollabASC);

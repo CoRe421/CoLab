@@ -31,7 +31,7 @@ protected:
 
 public:
 	// Sets default values for this character's properties
-	ACollabAbilityCharacter();
+	ACollabAbilityCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	// Called when the game starts or when spawned

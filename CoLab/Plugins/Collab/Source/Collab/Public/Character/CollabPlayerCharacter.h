@@ -20,7 +20,7 @@ protected:
 
 public:
 	// Sets default values for this character's properties
-	ACollabPlayerCharacter();
+	ACollabPlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	// Called when the game starts or when spawned

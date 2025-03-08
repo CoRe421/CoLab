@@ -14,7 +14,7 @@ class COLLAB_API ACollabEnemyCharacter : public ACollabAbilityCharacter
 
 public:
 	// Sets default values for this character's properties
-	ACollabEnemyCharacter();
+	ACollabEnemyCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	// Called when the game starts or when spawned

@@ -26,8 +26,10 @@ protected:
 	UPROPERTY()
 	TWeakObjectPtr<const UCollabMovementAttributeSet> MovementSet;
 
-	UPROPERTY()
-	float TargetJumpHeight = 0;
+	float TargetJumpHeight;
+	float AirAcceleration;
+	float MaxAirSpeed;
+	bool bAllowSlidingWhileMoving;
 
 public:
 	// Sets default values for this component's properties
@@ -51,10 +53,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Collab|Movement")
 	void UninitializeFromAbilitySystem();
 
+	virtual float GetMaxAcceleration() const override;
+
+	virtual void PhysWalking(float deltaTime, int32 Iterations) override;
+	virtual void PhysFalling(float deltaTime, int32 Iterations) override;
+
 	virtual void OnMovementAttributeChanged(AActor* EffectInstigator, AActor* EffectCauser,
 		const FGameplayEffectSpec* EffectSpec, float EffectMagnitude, const FGameplayAttribute& Attribute,
 		float OldValue, float NewValue);
+	
+	virtual FVector ComputeSlideVector(const FVector& Delta, const float Time, const FVector& Normal, const FHitResult& Hit) const override;
 
 private:
 	void OnJumpValuesUpdated();
+
+	void Phys_Internal(float DeltaTime);
 };

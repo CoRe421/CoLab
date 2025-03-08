@@ -45,7 +45,7 @@ class ACoLabCharacter : public ACollabPlayerCharacter
 	// UInputAction* MoveAction;
 	
 public:
-	ACoLabCharacter();
+	ACoLabCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay();

@@ -43,3 +43,31 @@ bool UCollabFunctionLibrary::IsActorOnServer(const AActor* Actor)
 	const bool bHasAuthority = Actor->HasAuthority();
 	return bHasAuthority && !bIsOnClient;
 }
+
+void UCollabFunctionLibrary::SortArray(TArray<UObject*>& Array, const FDynamicCallback_SortDelegate& SortDelegate)
+{
+	if (!SortDelegate.IsBound())
+	{
+		return;
+	}
+	
+	Algo::Sort(Array, [&](const UObject* A, const UObject* B)
+	{
+		return SortDelegate.Execute(A, B);
+	});
+}
+
+TArray<UObject*> UCollabFunctionLibrary::FilterArray(const TArray<UObject*>& Array,
+	const FDynamicCallback_FilterDelegate& FilterDelegate)
+{
+	TArray<UObject*> NewArray;
+	for (const UObject* Object : Array)
+	{
+		if (FilterDelegate.Execute(Object))
+		{
+			NewArray.Emplace(const_cast<UObject*>(Object));
+		}
+	}
+
+	return NewArray;
+}

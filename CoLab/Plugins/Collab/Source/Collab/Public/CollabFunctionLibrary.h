@@ -6,6 +6,9 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "CollabFunctionLibrary.generated.h"
 
+DECLARE_DYNAMIC_DELEGATE_RetVal_TwoParams(bool, FDynamicCallback_SortDelegate, const UObject*, A, const UObject*, B);
+DECLARE_DYNAMIC_DELEGATE_RetVal_OneParam(bool, FDynamicCallback_FilterDelegate, const UObject*, Object);
+
 class UAbilitySystemComponent;
 class UCollabAttributeSet;
 /**
@@ -28,4 +31,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, meta=(DefaultToSelf="Actor"))
 	static bool IsActorOnServer(const AActor* Actor);
+
+	UFUNCTION(BlueprintCallable)
+	static void SortArray(UPARAM(ref) TArray<UObject*>& Array, const FDynamicCallback_SortDelegate& SortDelegate);
+
+	UFUNCTION(BlueprintCallable)
+	static UPARAM(DisplayName="Filtered Array") TArray<UObject*> FilterArray(const TArray<UObject*>& Array, const FDynamicCallback_FilterDelegate& FilterDelegate);
 };

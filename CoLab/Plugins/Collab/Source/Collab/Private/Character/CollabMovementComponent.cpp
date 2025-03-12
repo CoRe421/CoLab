@@ -20,11 +20,26 @@ UCollabMovementComponent::UCollabMovementComponent()
 	// ...
 	SetIsReplicatedByDefault(true);
 
+	// const UCollabMovementAttributeSet* DefaultMovementValues = GetDefault<UCollabMovementAttributeSet>();
+	// if (IsValid(DefaultMovementValues))
+	// {
+	// 	MaxWalkSpeed = DefaultMovementValues->GetMovementSpeed();
+	// 	MaxAcceleration = DefaultMovementValues->GetAcceleration();
+	// 	bAllowSlidingWhileMoving = DefaultMovementValues->GetbAllowSlidingWhileMoving() > 0;
+	// 	LandingFrictionGracePeriod = DefaultMovementValues->GetLandingFrictionGracePeriod();
+	// 	TargetJumpHeight = DefaultMovementValues->GetJumpHeight();
+	// 	Mass = DefaultMovementValues->GetMass();
+	// 	GravityScale = DefaultMovementValues->GetGravityScale();
+	// 	AirControl = DefaultMovementValues->GetAirControl();
+	// 	MaxAirSpeed = DefaultMovementValues->GetAirSpeed();
+	// 	AirAcceleration = DefaultMovementValues->GetAirAcceleration();
+	// 	AirControlBoostMultiplier = DefaultMovementValues->GetAirControlBoostMultiplier();
+	// 	AirControlBoostVelocityThreshold = DefaultMovementValues->GetAirControlBoostVelocityThreshold();
+	// 	FallingLateralFriction = DefaultMovementValues->GetFallingLateralFriction();
+	// }
+
+	// This made the player constantly move when not pressing input - CR
 	// bForceMaxAccel = true;
-	TargetJumpHeight = 150.f;
-	AirAcceleration = 2048.f;
-	MaxAirSpeed = 100.f;
-	bAllowSlidingWhileMoving = false;
 }
 
 
@@ -103,6 +118,8 @@ void UCollabMovementComponent::InitializeWithAbilitySystem(UCollabAbilitySystemC
 			const float NewValue = Attribute.GetNumericValue(MovementSet.Get());
 			OnMovementAttributeChanged(nullptr, nullptr, nullptr, NewValue, Attribute, 0.f, NewValue);
 		}
+		
+		OnJumpValuesUpdated();
 	}
 	else
 	{
@@ -517,9 +534,17 @@ void UCollabMovementComponent::OnMovementAttributeChanged(AActor* EffectInstigat
 	{
 		MaxAcceleration = NewValue;
 	}
+	else if (Attribute == MovementSet->GetGroundFrictionAttribute())
+	{
+		GroundFriction = NewValue;
+	}
 	else if (Attribute == MovementSet->GetbAllowSlidingWhileMovingAttribute())
 	{
 		bAllowSlidingWhileMoving = NewValue > 0;
+	}
+	else if (Attribute == MovementSet->GetLandingFrictionGracePeriodAttribute())
+	{
+		LandingFrictionGracePeriod = NewValue;
 	}
 	else if (Attribute == MovementSet->GetJumpHeightAttribute())
 	{
@@ -580,8 +605,39 @@ FVector UCollabMovementComponent::ComputeSlideVector(const FVector& Delta, const
 	}
 }
 
+void UCollabMovementComponent::ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration)
+{
+	if (LastLandedTime.IsSet())
+	{
+		const FTimespan TimeSinceFall = FDateTime::Now() - LastLandedTime.GetValue();
+		if (TimeSinceFall < FTimespan::FromSeconds(LandingFrictionGracePeriod))
+		{
+			return;
+		}
+	}
+	
+	Super::ApplyVelocityBraking(DeltaTime, Friction, BrakingDeceleration);
+}
+
+void UCollabMovementComponent::SetPostLandedPhysics(const FHitResult& Hit)
+{
+	Super::SetPostLandedPhysics(Hit);
+
+	if (MovementMode != MOVE_Walking)
+	{
+		return;
+	}
+
+	LastLandedTime = FDateTime::Now();
+}
+
 void UCollabMovementComponent::OnJumpValuesUpdated()
 {
+	if (!AbilitySystemComponent.IsValid())
+	{
+		return;
+	}
+	
 	const AActor* Owner = AbilitySystemComponent->GetOwner();
 	if (!ensureAlways(IsValid(Owner)))
 	{

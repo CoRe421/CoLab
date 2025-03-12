@@ -30,6 +30,9 @@ protected:
 	float AirAcceleration;
 	float MaxAirSpeed;
 	bool bAllowSlidingWhileMoving;
+	float LandingFrictionGracePeriod;
+
+	TOptional<FDateTime> LastLandedTime;
 
 public:
 	// Sets default values for this component's properties
@@ -63,6 +66,9 @@ public:
 		float OldValue, float NewValue);
 	
 	virtual FVector ComputeSlideVector(const FVector& Delta, const float Time, const FVector& Normal, const FHitResult& Hit) const override;
+
+	virtual void ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration) override;
+	virtual void SetPostLandedPhysics(const FHitResult& Hit) override;
 
 private:
 	void OnJumpValuesUpdated();

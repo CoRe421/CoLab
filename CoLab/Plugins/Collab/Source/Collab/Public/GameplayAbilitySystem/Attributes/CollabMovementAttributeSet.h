@@ -32,9 +32,15 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_Acceleration, meta=(AllowPrivateAccess))
 	FGameplayAttributeData Acceleration;
 	ATTRIBUTE_ACCESSORS(UCollabMovementAttributeSet, Acceleration)
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_GroundFriction, meta=(AllowPrivateAccess))
+	FGameplayAttributeData GroundFriction;
+	ATTRIBUTE_ACCESSORS(UCollabMovementAttributeSet, GroundFriction)
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_AllowSlidingWhileMoving, meta=(AllowPrivateAccess))
 	FGameplayAttributeData bAllowSlidingWhileMoving;
 	ATTRIBUTE_ACCESSORS(UCollabMovementAttributeSet, bAllowSlidingWhileMoving)
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_LandingFrictionGracePeriod, meta=(AllowPrivateAccess))
+	FGameplayAttributeData LandingFrictionGracePeriod;
+	ATTRIBUTE_ACCESSORS(UCollabMovementAttributeSet, LandingFrictionGracePeriod)
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_JumpHeight, meta=(AllowPrivateAccess))
 	FGameplayAttributeData JumpHeight;
 	ATTRIBUTE_ACCESSORS(UCollabMovementAttributeSet, JumpHeight)
@@ -72,7 +78,11 @@ public:
 	UFUNCTION()
 	virtual void OnRep_Acceleration(const FGameplayAttributeData& OldAcceleration);
 	UFUNCTION()
+	virtual void OnRep_GroundFriction(const FGameplayAttributeData& OldGroundFriction);
+	UFUNCTION()
 	virtual void OnRep_AllowSlidingWhileMoving(const FGameplayAttributeData& OldAllowSlidingWhileMoving);
+	UFUNCTION()
+	virtual void OnRep_LandingFrictionGracePeriod(const FGameplayAttributeData& OldLandingFrictionGracePeriod);
 	UFUNCTION()
 	virtual void OnRep_JumpHeight(const FGameplayAttributeData& OldJumpHeight);
 	UFUNCTION()

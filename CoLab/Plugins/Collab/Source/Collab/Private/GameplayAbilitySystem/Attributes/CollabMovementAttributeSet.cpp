@@ -9,13 +9,18 @@ UCollabMovementAttributeSet::UCollabMovementAttributeSet()
 {
 	MovementSpeed = 600.f;
 	Acceleration = 2048.f;
+	GroundFriction = 8.f;
+	bAllowSlidingWhileMoving = false;
+	LandingFrictionGracePeriod = 0.1f;
 	JumpHeight = 150.f;
 	Mass = 300.f;
 	GravityScale = 1.f;
 	AirControl = .1f;
+	AirSpeed = 100.f;
+	AirAcceleration = 1000.f;
 	AirControlBoostMultiplier = 0.f;
 	AirControlBoostVelocityThreshold = 0.f;
-	FallingLateralFriction = 2.f;
+	FallingLateralFriction = 0.f;
 }
 
 void UCollabMovementAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -24,7 +29,9 @@ void UCollabMovementAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimePro
 	
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, MovementSpeed, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, Acceleration, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, GroundFriction, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, bAllowSlidingWhileMoving, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, LandingFrictionGracePeriod, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, JumpHeight, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, Mass, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, GravityScale, COND_None, REPNOTIFY_Always)
@@ -48,11 +55,24 @@ void UCollabMovementAttributeSet::OnRep_Acceleration(const FGameplayAttributeDat
 	COLLABATTRIBUTE_REPNOTIFY(GetAccelerationAttribute(), OldAcceleration.GetCurrentValue(), GetAcceleration());
 }
 
+void UCollabMovementAttributeSet::OnRep_GroundFriction(const FGameplayAttributeData& OldGroundFriction)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabMovementAttributeSet, GroundFriction, OldGroundFriction);
+	COLLABATTRIBUTE_REPNOTIFY(GetGroundFrictionAttribute(), OldGroundFriction.GetCurrentValue(), GetGroundFriction());
+}
+
 void UCollabMovementAttributeSet::OnRep_AllowSlidingWhileMoving(
 	const FGameplayAttributeData& OldAllowSlidingWhileMoving)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabMovementAttributeSet, bAllowSlidingWhileMoving, OldAllowSlidingWhileMoving);
 	COLLABATTRIBUTE_REPNOTIFY(GetbAllowSlidingWhileMovingAttribute(), OldAllowSlidingWhileMoving.GetCurrentValue(), GetbAllowSlidingWhileMoving());
+}
+
+void UCollabMovementAttributeSet::OnRep_LandingFrictionGracePeriod(
+	const FGameplayAttributeData& OldLandingFrictionGracePeriod)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabMovementAttributeSet, LandingFrictionGracePeriod, OldLandingFrictionGracePeriod);
+	COLLABATTRIBUTE_REPNOTIFY(GetLandingFrictionGracePeriodAttribute(), OldLandingFrictionGracePeriod.GetCurrentValue(), GetLandingFrictionGracePeriod());
 }
 
 void UCollabMovementAttributeSet::OnRep_JumpHeight(const FGameplayAttributeData& OldJumpHeight)

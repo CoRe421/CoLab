@@ -26,9 +26,6 @@ class COLLAB_API UCollabHealthAttributeSet : public UCollabAttributeSet
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintAssignable, BlueprintReadOnly, DisplayName="OnHealthChanged")
-	mutable FDynamicEvent_OnHealthChanged BP_OnHealthChanged;
-	mutable FNativeEvent_CollabAttributeEvent OnHealthChanged;
 	UPROPERTY(BlueprintAssignable, BlueprintReadOnly, DisplayName="OnOutOfHealth")
 	mutable FDynamicEvent_OnOutOfHealth BP_OnOutOfHealth;
 	mutable FNativeEvent_CollabAttributeEvent OnOutOfHealth;
@@ -36,9 +33,6 @@ public:
 private:
 	// Used to track when the health reaches 0.
 	bool bOutOfHealth;
-
-	// Store the health before any changes 
-	float HealthBeforeAttributeChange;
 
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Max Health", ReplicatedUsing = OnRep_MaxHealth, meta=(AllowPrivateAccess))
@@ -61,11 +55,8 @@ public:
 	UFUNCTION()
 	virtual void OnRep_Health(const FGameplayAttributeData& OldHealth);
 
-	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
-	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
-	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
-private:
-	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const;
+protected:
+	virtual void ClampAttributes(const FGameplayAttribute& Attribute, float& NewValue) const override;
 };

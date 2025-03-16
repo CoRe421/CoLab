@@ -106,18 +106,50 @@ void UCollabMovementComponent::InitializeWithAbilitySystem(UCollabAbilitySystemC
 		return;
 	}
 
-	MovementSet = AbilitySystemComponent->GetSet<UCollabMovementAttributeSet>();
-	if (MovementSet.IsValid())
+	const UCollabMovementAttributeSet* MovementSet = AbilitySystemComponent->GetSet<UCollabMovementAttributeSet>();
+	if (IsValid(MovementSet))
 	{
-		MovementSet->OnAttributeChanged.AddUObject(this, &ThisClass::OnMovementAttributeChanged);
-
-		TArray<FGameplayAttribute> MovementAttributes;
-		UAttributeSet::GetAttributesFromSetClass(UCollabMovementAttributeSet::StaticClass(), MovementAttributes);
-		for (const FGameplayAttribute& Attribute : MovementAttributes)
-		{
-			const float NewValue = Attribute.GetNumericValue(MovementSet.Get());
-			OnMovementAttributeChanged(nullptr, nullptr, nullptr, NewValue, Attribute, 0.f, NewValue);
-		}
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetMovementSpeedAttribute()).AddUObject(this, &ThisClass::OnMovementSpeedChanged);
+		OnMovementSpeedChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetMovementSpeedAttribute(), MovementSet));
+		
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetAccelerationAttribute()).AddUObject(this, &ThisClass::OnGroundAccelerationChanged);
+		OnGroundAccelerationChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetAccelerationAttribute(), MovementSet));
+		
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetGroundFrictionAttribute()).AddUObject(this, &ThisClass::OnGroundFrictionChanged);
+		OnGroundFrictionChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetGroundFrictionAttribute(), MovementSet));
+		
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetbAllowSlidingWhileMovingAttribute()).AddUObject(this, &ThisClass::OnAllowSlidingWhileMovingChanged);
+		OnAllowSlidingWhileMovingChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetbAllowSlidingWhileMovingAttribute(), MovementSet));
+		
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetLandingFrictionGracePeriodAttribute()).AddUObject(this, &ThisClass::OnLandingFrictionGracePeriodChanged);
+		OnLandingFrictionGracePeriodChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetLandingFrictionGracePeriodAttribute(), MovementSet));
+		
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetJumpHeightAttribute()).AddUObject(this, &ThisClass::OnJumpHeightChanged);
+		OnJumpHeightChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetJumpHeightAttribute(), MovementSet));
+		
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetMassAttribute()).AddUObject(this, &ThisClass::OnMassChanged);
+		OnMassChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetMassAttribute(), MovementSet));
+		
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetGravityScaleAttribute()).AddUObject(this, &ThisClass::OnGravityScaleChanged);
+		OnGravityScaleChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetGravityScaleAttribute(), MovementSet));
+		
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetAirControlAttribute()).AddUObject(this, &ThisClass::OnAirControlChanged);
+		OnAirControlChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetAirControlAttribute(), MovementSet));
+		
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetAirSpeedAttribute()).AddUObject(this, &ThisClass::OnAirSpeedChanged);
+		OnAirSpeedChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetAirSpeedAttribute(), MovementSet));
+		
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetAirAccelerationAttribute()).AddUObject(this, &ThisClass::OnAirAccelerationChanged);
+		OnAirAccelerationChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetAirAccelerationAttribute(), MovementSet));
+		
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetAirControlBoostMultiplierAttribute()).AddUObject(this, &ThisClass::OnAirControlBoostMultiplierChanged);
+		OnAirControlBoostMultiplierChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetAirControlBoostMultiplierAttribute(), MovementSet));
+		
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetAirControlBoostVelocityThresholdAttribute()).AddUObject(this, &ThisClass::OnAirControlBoostVelocityThresholdChanged);
+		OnAirControlBoostVelocityThresholdChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetAirControlBoostVelocityThresholdAttribute(), MovementSet));
+		
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetFallingLateralFrictionAttribute()).AddUObject(this, &ThisClass::OnFallingLateralFrictionChanged);
+		OnFallingLateralFrictionChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetFallingLateralFrictionAttribute(), MovementSet));
 		
 		OnJumpValuesUpdated();
 	}
@@ -129,12 +161,11 @@ void UCollabMovementComponent::InitializeWithAbilitySystem(UCollabAbilitySystemC
 
 void UCollabMovementComponent::UninitializeFromAbilitySystem()
 {
-	if (MovementSet.IsValid())
+	if (AbilitySystemComponent.IsValid())
 	{
-		MovementSet->OnAttributeChanged.RemoveAll(this);
+		AbilitySystemComponent->RemoveAttributeSetBindingsFromObject(UCollabMovementAttributeSet::StaticClass(), this);
 	}
-
-	MovementSet = nullptr;
+	
 	AbilitySystemComponent = nullptr;
 }
 
@@ -522,74 +553,6 @@ void UCollabMovementComponent::PhysFalling(float deltaTime, int32 Iterations)
 	}
 }
 
-void UCollabMovementComponent::OnMovementAttributeChanged(AActor* EffectInstigator, AActor* EffectCauser,
-                                                          const FGameplayEffectSpec* EffectSpec, float EffectMagnitude, const FGameplayAttribute& Attribute, float OldValue,
-                                                          float NewValue)
-{
-	if (Attribute == MovementSet->GetMovementSpeedAttribute())
-	{
-		MaxWalkSpeed = NewValue;
-	}
-	else if (Attribute == MovementSet->GetAccelerationAttribute())
-	{
-		MaxAcceleration = NewValue;
-	}
-	else if (Attribute == MovementSet->GetGroundFrictionAttribute())
-	{
-		GroundFriction = NewValue;
-	}
-	else if (Attribute == MovementSet->GetbAllowSlidingWhileMovingAttribute())
-	{
-		bAllowSlidingWhileMoving = NewValue > 0;
-	}
-	else if (Attribute == MovementSet->GetLandingFrictionGracePeriodAttribute())
-	{
-		LandingFrictionGracePeriod = NewValue;
-	}
-	else if (Attribute == MovementSet->GetJumpHeightAttribute())
-	{
-		TargetJumpHeight = NewValue;
-		OnJumpValuesUpdated();
-	}
-	else if (Attribute == MovementSet->GetMassAttribute())
-	{
-		Mass = NewValue;
-	}
-	else if (Attribute == MovementSet->GetGravityScaleAttribute())
-	{
-		GravityScale = NewValue;
-		OnJumpValuesUpdated();
-	}
-	else if (Attribute == MovementSet->GetAirControlAttribute())
-	{
-		AirControl = NewValue;
-	}
-	else if (Attribute == MovementSet->GetAirSpeedAttribute())
-	{
-		MaxAirSpeed = NewValue;
-	}
-	else if (Attribute == MovementSet->GetAirAccelerationAttribute())
-	{
-		AirAcceleration = NewValue;
-	}
-	else if (Attribute == MovementSet->GetAirControlBoostMultiplierAttribute())
-	{
-		AirControlBoostMultiplier = NewValue;
-	}
-	else if (Attribute == MovementSet->GetAirControlBoostVelocityThresholdAttribute())
-	{
-		AirControlBoostVelocityThreshold = NewValue;
-	}
-	else if (Attribute == MovementSet->GetFallingLateralFrictionAttribute())
-	{
-		FallingLateralFriction = NewValue;
-	}
-	else
-	{
-		UE_LOG(LogCollab, Error, TEXT("Movement set attribute not handled"))
-	}
-}
-
 FVector UCollabMovementComponent::ComputeSlideVector(const FVector& Delta, const float Time, const FVector& Normal,
 	const FHitResult& Hit) const
 {
@@ -694,5 +657,77 @@ void UCollabMovementComponent::Phys_Internal(float DeltaTime)
 	float TempAcceleration = StrafeAcceleration * DeltaTime;
 	TempAcceleration = FMath::Max(0, FMath::Min(TempAcceleration, SpeedLimit - CurrentSpeed));
 	Velocity += InputVector * TempAcceleration;
+}
+
+void UCollabMovementComponent::OnMovementSpeedChanged(const FOnAttributeChangeData& Data)
+{
+	MaxWalkSpeed = Data.NewValue;
+}
+
+void UCollabMovementComponent::OnGroundAccelerationChanged(const FOnAttributeChangeData& Data)
+{
+	MaxAcceleration = Data.NewValue;
+}
+
+void UCollabMovementComponent::OnGroundFrictionChanged(const FOnAttributeChangeData& Data)
+{
+	GroundFriction = Data.NewValue;
+}
+
+void UCollabMovementComponent::OnAllowSlidingWhileMovingChanged(const FOnAttributeChangeData& Data)
+{
+	bAllowSlidingWhileMoving = Data.NewValue > 0.f;
+}
+
+void UCollabMovementComponent::OnLandingFrictionGracePeriodChanged(const FOnAttributeChangeData& Data)
+{
+	LandingFrictionGracePeriod = Data.NewValue;
+}
+
+void UCollabMovementComponent::OnJumpHeightChanged(const FOnAttributeChangeData& Data)
+{
+	TargetJumpHeight = Data.NewValue;
+	OnJumpValuesUpdated();
+}
+
+void UCollabMovementComponent::OnMassChanged(const FOnAttributeChangeData& Data)
+{
+	Mass = Data.NewValue;
+}
+
+void UCollabMovementComponent::OnGravityScaleChanged(const FOnAttributeChangeData& Data)
+{
+	GravityScale = Data.NewValue;
+	OnJumpValuesUpdated();
+}
+
+void UCollabMovementComponent::OnAirControlChanged(const FOnAttributeChangeData& Data)
+{
+	AirControl = Data.NewValue;
+}
+
+void UCollabMovementComponent::OnAirSpeedChanged(const FOnAttributeChangeData& Data)
+{
+	MaxAirSpeed = Data.NewValue;
+}
+
+void UCollabMovementComponent::OnAirAccelerationChanged(const FOnAttributeChangeData& Data)
+{
+	AirAcceleration = Data.NewValue;
+}
+
+void UCollabMovementComponent::OnAirControlBoostMultiplierChanged(const FOnAttributeChangeData& Data)
+{
+	AirControlBoostMultiplier = Data.NewValue;
+}
+
+void UCollabMovementComponent::OnAirControlBoostVelocityThresholdChanged(const FOnAttributeChangeData& Data)
+{
+	AirControlBoostVelocityThreshold = Data.NewValue;
+}
+
+void UCollabMovementComponent::OnFallingLateralFrictionChanged(const FOnAttributeChangeData& Data)
+{
+	FallingLateralFriction = Data.NewValue;
 }
 

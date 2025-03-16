@@ -149,6 +149,22 @@ void UCollabAbilitySystemComponent::InitAbilityActorInfo(AActor* InOwnerActor, A
 	}
 }
 
+void UCollabAbilitySystemComponent::RemoveAttributeSetBindingsFromObject(
+	const TSubclassOf<UAttributeSet>& AttributeSet, const UObject* Object)
+{
+	if (!IsValid(AttributeSet) || !IsValid(Object))
+	{
+		return;
+	}
+	
+	TArray<FGameplayAttribute> MovementAttributes;
+	UAttributeSet::GetAttributesFromSetClass(AttributeSet, MovementAttributes);
+	for (const FGameplayAttribute& Attribute : MovementAttributes)
+	{
+		GetGameplayAttributeValueChangeDelegate(Attribute).RemoveAll(Object);
+	}
+}
+
 void UCollabAbilitySystemComponent::OnAttributeChanged(const FGameplayAttribute& Attribute, const float OldValue,
                                                        const float NewValue)
 {

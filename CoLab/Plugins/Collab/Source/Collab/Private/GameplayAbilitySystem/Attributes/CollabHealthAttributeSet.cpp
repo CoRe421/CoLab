@@ -33,49 +33,19 @@ void UCollabHealthAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHe
 	const FGameplayAttribute& HealthAttribute = GetHealthAttribute();
 	COLLABATTRIBUTE_REPNOTIFY(HealthAttribute, OldHealth.GetCurrentValue(), GetHealth());
 
-	const float CurrentHealth = GetHealth();
-	const float EstimatedMagnitude = CurrentHealth - OldHealth.GetCurrentValue();
-	
-	BP_OnHealthChanged.Broadcast(CurrentHealth, MaxHealth.GetCurrentValue());
-	OnHealthChanged.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, HealthAttribute, OldHealth.GetCurrentValue(), CurrentHealth);
+	const float CurrentHealthValue = GetHealth();
+	const float OldHealthValue = OldHealth.GetCurrentValue();
+	const float EstimatedMagnitude = CurrentHealthValue - OldHealthValue;
 
-	if ((CurrentHealth <= 0.0f) && !bOutOfHealth)
+	if ((CurrentHealthValue <= 0.0f) && !bOutOfHealth)
 	{
+		bOutOfHealth = true;
+		
 		BP_OnOutOfHealth.Broadcast();
-		OnOutOfHealth.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, HealthAttribute, OldHealth.GetCurrentValue(), CurrentHealth);
+		OnOutOfHealth.Broadcast(nullptr, nullptr, nullptr, EstimatedMagnitude, HealthAttribute, OldHealthValue, CurrentHealthValue);
 	}
 
-	bOutOfHealth = (CurrentHealth <= 0.0f);
-}
-
-void UCollabHealthAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
-{
-	Super::PreAttributeChange(Attribute, NewValue);
-
-	ClampAttribute(Attribute, NewValue);
-}
-
-void UCollabHealthAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
-{
-	Super::PostAttributeChange(Attribute, OldValue, NewValue);
-
-	if (bOutOfHealth && (GetHealth() > 0.0f))
-	{
-		bOutOfHealth = false;
-	}
-}
-
-bool UCollabHealthAttributeSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
-{
-	if (!Super::PreGameplayEffectExecute(Data))
-	{
-		return false;
-	}
-	
-	// Save the current health
-	HealthBeforeAttributeChange = GetHealth();
-	
-	return true;
+	bOutOfHealth = (CurrentHealthValue <= 0.0f);
 }
 
 void UCollabHealthAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -105,32 +75,32 @@ void UCollabHealthAttributeSet::PostGameplayEffectExecute(const FGameplayEffectM
 	const float NewHealth = GetHealth();
 	const FGameplayAttribute& HealthAttribute = GetHealthAttribute();
 
-	// Use this function to trigger in-game reactions to attribute changes
-	if (NewHealth != HealthBeforeAttributeChange)
-	{
-		BP_OnHealthChanged.Broadcast(NewHealth, CurrentMaxHealth);
-		OnHealthChanged.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, HealthAttribute, HealthBeforeAttributeChange, NewHealth);
-	}
-
 	if ((NewHealth <= 0.0f) && !bOutOfHealth)
 	{
+		bOutOfHealth = true;
+		
 		BP_OnOutOfHealth.Broadcast();
-		OnOutOfHealth.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, HealthAttribute, HealthBeforeAttributeChange, NewHealth);
+		OnOutOfHealth.Broadcast(Instigator, Causer, &Data.EffectSpec, Data.EvaluatedData.Magnitude, HealthAttribute, OldHealth, NewHealth);
 	}
-
+	
 	// Check health again in case an event above changed it.
 	bOutOfHealth = NewHealth <= 0.0f;
 }
 
-void UCollabHealthAttributeSet::ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const
+void UCollabHealthAttributeSet::ClampAttributes(const FGameplayAttribute& Attribute, float& NewValue) const
 {
+	Super::ClampAttributes(Attribute, NewValue);
+	
 	if (Attribute == GetHealthAttribute())
 	{
 		NewValue = FMath::Clamp(NewValue, 0.f, GetMaxHealth());
+		return;
 	}
-	else if (Attribute == GetMaxHealthAttribute())
+	
+	if (Attribute == GetMaxHealthAttribute())
 	{
 		// Stops max health from going below 1 - CR
 		NewValue = FMath::Max(NewValue, 1.f);
+		return;
 	}
 }

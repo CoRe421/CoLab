@@ -28,8 +28,8 @@ public:
 	// UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
 	// TObjectPtr<UCollabMovementComponent> CollabMovementComponent;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
-	TObjectPtr<UCollabAttributeComponent> AttributeComponent;
+	// UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess))
+	// TObjectPtr<UCollabAttributeComponent> AttributeComponent;
 
 public:
 	// Sets default values for this pawn's properties

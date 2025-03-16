@@ -43,7 +43,7 @@ ACollabCharacterBase::ACollabCharacterBase(const FObjectInitializer& ObjectIniti
 		PawnExtensionComponent->OnAbilitySystemInit.AddUniqueDynamic(this, &ThisClass::OnAbilitySystemInitialized);
 	}
 	
-	AttributeComponent = CreateDefaultSubobject<UCollabAttributeComponent>(TEXT("AttributeComponent"));
+	// AttributeComponent = CreateDefaultSubobject<UCollabAttributeComponent>(TEXT("AttributeComponent"));
 }
 
 // Called when the game starts or when spawned

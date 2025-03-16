@@ -7,6 +7,13 @@
 #include "AttributeSet.h"
 #include "CollabAttributeSet.generated.h"
 
+class UCollabAttributeSet;
+// Used for initializing attribute values - CR
+struct FOnCollabInitialAttributeChangeData : public FOnAttributeChangeData
+{
+	FOnCollabInitialAttributeChangeData(const FGameplayAttribute& InAttribute, const UCollabAttributeSet* AttributeSet);
+};
+
 // Uses macros from AttributeSet.h
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
 GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
@@ -18,8 +25,8 @@ GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 #define COLLABATTRIBUTE_REPNOTIFY(Attribute, OldValue, NewValue) \
 { \
 	OnAttributeChanged_BP.Broadcast(Attribute, OldValue, NewValue); \
-	OnAttributeChanged.Broadcast(nullptr, nullptr, nullptr, NewValue - OldValue, Attribute, OldValue, NewValue); \
 }
+/*	OnAttributeChanged.Broadcast(nullptr, nullptr, nullptr, NewValue - OldValue, Attribute, OldValue, NewValue); \ */
 
 class UCollabAbilitySystemComponent;
 
@@ -47,16 +54,22 @@ class COLLAB_API UCollabAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
 
-private:
-	TMap<FString, float> PendingChangedAttributes;
+// private:
+// 	TMap<FString, float> PendingChangedAttributes;
 
 public:
-	mutable FNativeEvent_CollabAttributeEvent OnAttributeChanged;
+	// Defer to using 'UAbilitySystemComponent::GetGameplayAttributeValueChangeDelegate()' instead when working in C++
+	// mutable FNativeEvent_CollabAttributeEvent OnAttributeChanged;
 	UPROPERTY(BlueprintAssignable, meta=(AllowPrivateAccess), DisplayName="OnAttributeChanged")
 	mutable FDynamicEvent_OnAttributeChanged OnAttributeChanged_BP;
 
-public:
-	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
+// public:
+// 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
+// 	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
+
+protected:
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+	virtual void PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const override;
 	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
-	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+	virtual void ClampAttributes(const FGameplayAttribute& Attribute, float& NewValue) const {};
 };

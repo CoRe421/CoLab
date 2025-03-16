@@ -7,6 +7,7 @@
 #include "CollabMovementComponent.generated.h"
 
 
+struct FOnAttributeChangeData;
 struct FGameplayAttribute;
 struct FGameplayEffectSpec;
 class UCollabMovementAttributeSet;
@@ -21,10 +22,6 @@ protected:
 	// Ability system used by this component.
 	UPROPERTY()
 	TWeakObjectPtr<UCollabAbilitySystemComponent> AbilitySystemComponent;
-
-	// Health set used by this component.
-	UPROPERTY()
-	TWeakObjectPtr<const UCollabMovementAttributeSet> MovementSet;
 
 	float TargetJumpHeight;
 	float AirAcceleration;
@@ -60,10 +57,6 @@ public:
 
 	virtual void PhysWalking(float deltaTime, int32 Iterations) override;
 	virtual void PhysFalling(float deltaTime, int32 Iterations) override;
-
-	virtual void OnMovementAttributeChanged(AActor* EffectInstigator, AActor* EffectCauser,
-		const FGameplayEffectSpec* EffectSpec, float EffectMagnitude, const FGameplayAttribute& Attribute,
-		float OldValue, float NewValue);
 	
 	virtual FVector ComputeSlideVector(const FVector& Delta, const float Time, const FVector& Normal, const FHitResult& Hit) const override;
 
@@ -74,4 +67,19 @@ private:
 	void OnJumpValuesUpdated();
 
 	void Phys_Internal(float DeltaTime);
+
+	void OnMovementSpeedChanged( const FOnAttributeChangeData& Data);
+	void OnGroundAccelerationChanged( const FOnAttributeChangeData& Data);
+	void OnGroundFrictionChanged( const FOnAttributeChangeData& Data);
+	void OnAllowSlidingWhileMovingChanged( const FOnAttributeChangeData& Data);
+	void OnLandingFrictionGracePeriodChanged( const FOnAttributeChangeData& Data);
+	void OnJumpHeightChanged( const FOnAttributeChangeData& Data);
+	void OnMassChanged( const FOnAttributeChangeData& Data);
+	void OnGravityScaleChanged( const FOnAttributeChangeData& Data);
+	void OnAirControlChanged( const FOnAttributeChangeData& Data);
+	void OnAirSpeedChanged( const FOnAttributeChangeData& Data);
+	void OnAirAccelerationChanged( const FOnAttributeChangeData& Data);
+	void OnAirControlBoostMultiplierChanged( const FOnAttributeChangeData& Data);
+	void OnAirControlBoostVelocityThresholdChanged( const FOnAttributeChangeData& Data);
+	void OnFallingLateralFrictionChanged( const FOnAttributeChangeData& Data);
 };

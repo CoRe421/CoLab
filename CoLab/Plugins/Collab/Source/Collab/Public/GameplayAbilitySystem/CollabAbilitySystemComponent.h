@@ -47,6 +47,8 @@ public:
 
 	virtual void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor) override;
 
+	void RemoveAttributeSetBindingsFromObject(const TSubclassOf<UAttributeSet>& AttributeSet, const UObject* Object);
+
 protected:
 	UFUNCTION()
 	void OnAttributeChanged(const FGameplayAttribute& Attribute, const float OldValue, const float NewValue);

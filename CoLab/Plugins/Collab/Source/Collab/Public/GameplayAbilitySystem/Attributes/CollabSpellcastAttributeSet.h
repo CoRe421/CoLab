@@ -22,15 +22,7 @@ UCLASS(BlueprintType)
 class COLLAB_API UCollabSpellcastAttributeSet : public UCollabAttributeSet
 {
 	GENERATED_BODY()
-
-public:
-	UPROPERTY(BlueprintAssignable, BlueprintReadOnly)
-	mutable FDynamicEvent_OnManaChanged OnManaChanged;
-
-private:
-	// Store the mana before any changes 
-	float ManaBeforeAttributeChange;
-
+	
 public:
 	UPROPERTY(BlueprintReadOnly, Category = "Max Mana", ReplicatedUsing = OnRep_MaxMana, meta=(AllowPrivateAccess))
 	FGameplayAttributeData MaxMana;
@@ -46,10 +38,6 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
-	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
-	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
-
-private:
-	void ClampAttribute(const FGameplayAttribute& Attribute, float& NewValue) const;
+protected:
+	virtual void ClampAttributes(const FGameplayAttribute& Attribute, float& NewValue) const override;
 };

@@ -5,6 +5,7 @@
 
 #include "CollabGameplayTags.h"
 #include "CollabLog.h"
+#include "GameplayEffectExtension.h"
 #include "Character/CollabCharacterBase.h"
 #include "GameModes/CollabGameData.h"
 #include "GameModes/CollabGameMode.h"
@@ -52,7 +53,7 @@ void UCollabHealthComponent::InitializeWithAbilitySystem(UCollabAbilitySystemCom
 	}
 
 	// Register to listen for attribute changes.
-	HealthSet->OnHealthChanged.AddUObject(this, &ThisClass::HandleHealthChanged);
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabHealthAttributeSet::GetDamageAttribute()).AddUObject(this, &ThisClass::HandleDamageChanged);
 	// HealthSet->OnMaxHealthChanged.AddUObject(this, &ThisClass::HandleMaxHealthChanged);
 	HealthSet->OnOutOfHealth.AddUObject(this, &ThisClass::HandleOutOfHealth);
 
@@ -62,10 +63,12 @@ void UCollabHealthComponent::InitializeWithAbilitySystem(UCollabAbilitySystemCom
 
 void UCollabHealthComponent::UninitializeFromAbilitySystem()
 {
+	if (AbilitySystemComponent.IsValid())
+	{
+		AbilitySystemComponent->RemoveAttributeSetBindingsFromObject(UCollabHealthAttributeSet::StaticClass(), this);
+	}
 	if (HealthSet.IsValid())
 	{
-		HealthSet->OnHealthChanged.RemoveAll(this);
-		// HealthSet->OnMaxHealthChanged.RemoveAll(this);
 		HealthSet->OnOutOfHealth.RemoveAll(this);
 	}
 
@@ -162,11 +165,17 @@ void UCollabHealthComponent::OnUnregister()
 	Super::OnUnregister();
 }
 
-void UCollabHealthComponent::HandleHealthChanged(AActor* DamageInstigator, AActor* DamageCauser,
-	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude, const FGameplayAttribute& Attribute,
-	float OldValue, float NewValue)
+void UCollabHealthComponent::HandleDamageChanged(const FOnAttributeChangeData& Data)
 {
-	BroadcastDamaged(DamageInstigator, DamageCauser, DamageEffectSpec, DamageMagnitude);
+	if (!Data.GEModData || FMath::IsNearlyZero(Data.NewValue))
+	{
+		return;
+	}
+	
+	const FGameplayEffectContextHandle& EffectContext = Data.GEModData->EffectSpec.GetEffectContext();
+	const AActor* Instigator = EffectContext.GetOriginalInstigator();
+	const AActor* Causer = EffectContext.GetEffectCauser();
+	BroadcastDamaged(Instigator, Causer, &Data.GEModData->EffectSpec, Data.GEModData->EvaluatedData.Magnitude);
 }
 
 
@@ -214,7 +223,7 @@ void UCollabHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 #endif // #if WITH_SERVER_CODE
 }
 
-void UCollabHealthComponent::BroadcastDamaged(AActor* DamageInstigator, AActor* DamageCauser,
+void UCollabHealthComponent::BroadcastDamaged(const AActor* DamageInstigator, const AActor* DamageCauser,
 	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude)
 {
 	if (!AbilitySystemComponent.IsValid())

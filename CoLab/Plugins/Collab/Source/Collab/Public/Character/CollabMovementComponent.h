@@ -27,9 +27,23 @@ protected:
 	float AirAcceleration;
 	float MaxAirSpeed;
 	bool bAllowSlidingWhileMoving;
+	float LandingAccelerationGracePeriod;
 	float LandingFrictionGracePeriod;
+	float MaxGravityVelocity;
 
 	TOptional<FDateTime> LastLandedTime;
+
+public:
+	UPROPERTY(BlueprintReadOnly)
+	bool bCurrentlyColliding = false;
+	UPROPERTY(BlueprintReadOnly)
+	FVector CurrentCollisionNormal;
+	UPROPERTY(BlueprintReadOnly)
+	FVector PreSlideVelocity;
+	UPROPERTY(BlueprintReadOnly)
+	FVector PostSlideVelocity;
+	UPROPERTY(BlueprintReadOnly)
+	float InputAcceleration;
 
 public:
 	// Sets default values for this component's properties
@@ -53,15 +67,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Collab|Movement")
 	void UninitializeFromAbilitySystem();
 
+	// virtual float GetMaxSpeed() const override;
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	float GetCurrentMaxSpeed();
 	virtual float GetMaxAcceleration() const override;
 
 	virtual void PhysWalking(float deltaTime, int32 Iterations) override;
 	virtual void PhysFalling(float deltaTime, int32 Iterations) override;
+
+	virtual void CalcVelocity(float DeltaTime, float Friction, bool bFluid, float BrakingDeceleration) override;
 	
 	virtual FVector ComputeSlideVector(const FVector& Delta, const float Time, const FVector& Normal, const FHitResult& Hit) const override;
 
 	virtual void ApplyVelocityBraking(float DeltaTime, float Friction, float BrakingDeceleration) override;
 	virtual void SetPostLandedPhysics(const FHitResult& Hit) override;
+
+	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
 
 private:
 	void OnJumpValuesUpdated();
@@ -72,6 +93,7 @@ private:
 	void OnGroundAccelerationChanged( const FOnAttributeChangeData& Data);
 	void OnGroundFrictionChanged( const FOnAttributeChangeData& Data);
 	void OnAllowSlidingWhileMovingChanged( const FOnAttributeChangeData& Data);
+	void OnLandingAccelerationGracePeriodChanged( const FOnAttributeChangeData& Data);
 	void OnLandingFrictionGracePeriodChanged( const FOnAttributeChangeData& Data);
 	void OnJumpHeightChanged( const FOnAttributeChangeData& Data);
 	void OnMassChanged( const FOnAttributeChangeData& Data);
@@ -82,4 +104,5 @@ private:
 	void OnAirControlBoostMultiplierChanged( const FOnAttributeChangeData& Data);
 	void OnAirControlBoostVelocityThresholdChanged( const FOnAttributeChangeData& Data);
 	void OnFallingLateralFrictionChanged( const FOnAttributeChangeData& Data);
+	void OnMaxGravityVelocityChanged( const FOnAttributeChangeData& Data);
 };

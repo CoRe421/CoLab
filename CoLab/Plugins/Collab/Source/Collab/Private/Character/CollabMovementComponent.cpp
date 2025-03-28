@@ -121,6 +121,9 @@ void UCollabMovementComponent::InitializeWithAbilitySystem(UCollabAbilitySystemC
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetbAllowSlidingWhileMovingAttribute()).AddUObject(this, &ThisClass::OnAllowSlidingWhileMovingChanged);
 		OnAllowSlidingWhileMovingChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetbAllowSlidingWhileMovingAttribute(), MovementSet));
 		
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetLandingAccelerationGracePeriodAttribute()).AddUObject(this, &ThisClass::OnLandingAccelerationGracePeriodChanged);
+		OnLandingAccelerationGracePeriodChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetLandingAccelerationGracePeriodAttribute(), MovementSet));
+		
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetLandingFrictionGracePeriodAttribute()).AddUObject(this, &ThisClass::OnLandingFrictionGracePeriodChanged);
 		OnLandingFrictionGracePeriodChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetLandingFrictionGracePeriodAttribute(), MovementSet));
 		
@@ -151,6 +154,9 @@ void UCollabMovementComponent::InitializeWithAbilitySystem(UCollabAbilitySystemC
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetFallingLateralFrictionAttribute()).AddUObject(this, &ThisClass::OnFallingLateralFrictionChanged);
 		OnFallingLateralFrictionChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetFallingLateralFrictionAttribute(), MovementSet));
 		
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCollabMovementAttributeSet::GetMaxGravityVelocityAttribute()).AddUObject(this, &ThisClass::OnMaxGravityVelocityChanged);
+		OnMaxGravityVelocityChanged(FOnCollabInitialAttributeChangeData(UCollabMovementAttributeSet::GetMaxGravityVelocityAttribute(), MovementSet));
+		
 		OnJumpValuesUpdated();
 	}
 	else
@@ -168,6 +174,25 @@ void UCollabMovementComponent::UninitializeFromAbilitySystem()
 	
 	AbilitySystemComponent = nullptr;
 }
+
+float UCollabMovementComponent::GetCurrentMaxSpeed()
+{
+	if (MovementMode == MOVE_Falling)
+	{
+		return MaxAirSpeed;
+	}
+	const float MaxSpeed = GetMaxSpeed();
+	return MaxSpeed;
+}
+
+// float UCollabMovementComponent::GetMaxSpeed() const
+// {
+// 	if (MovementMode == MOVE_Falling)
+// 	{
+// 		return MaxAirSpeed;
+// 	}
+// 	return Super::GetMaxSpeed();
+// }
 
 float UCollabMovementComponent::GetMaxAcceleration() const
 {
@@ -210,14 +235,21 @@ void UCollabMovementComponent::PhysFalling(float deltaTime, int32 Iterations)
 	while( (remainingTime >= MIN_TICK_TIME) && (Iterations < MaxSimulationIterations) )
 	{
 		Iterations++;
+
+		if (Iterations > 1)
+		{
+			float test = 0;
+		}
+		
 		float timeTick = GetSimulationTimeStep(remainingTime, Iterations);
 		remainingTime -= timeTick;
 		
 		const FVector OldLocation = UpdatedComponent->GetComponentLocation();
 		const FQuat PawnRotation = UpdatedComponent->GetComponentQuat();
+
+		// THIS IS A LOAD-BEARING LINE OF CODE!!!
+		bJustTeleported = false;
 		
-		// bJustTeleported = false;
-		//
 		const FVector OldVelocityWithRootMotion = Velocity;
 		//
 		// RestorePreAdditiveRootMotionVelocity();
@@ -350,6 +382,9 @@ void UCollabMovementComponent::PhysFalling(float deltaTime, int32 Iterations)
 		
 		float LastMoveTimeSlice = timeTick;
 		float subTimeTickRemaining = timeTick * (1.f - Hit.Time);
+
+		bCurrentlyColliding = Hit.bBlockingHit;
+		CurrentCollisionNormal = bCurrentlyColliding ? Hit.Normal : FVector::ZeroVector;
 		
 		// if ( IsSwimming() ) //just entered water
 		// {
@@ -428,8 +463,10 @@ void UCollabMovementComponent::PhysFalling(float deltaTime, int32 Iterations)
 				// }
 	
 				const FVector OldHitNormal = Hit.Normal;
-				const FVector OldHitImpactNormal = Hit.ImpactNormal;				
+				const FVector OldHitImpactNormal = Hit.ImpactNormal;
+				PreSlideVelocity = Adjusted;
 				FVector Delta = ComputeSlideVector(Adjusted, 1.f - Hit.Time, OldHitNormal, Hit);
+				PostSlideVelocity = Delta;
 	
 				// Compute velocity after deflection (only gravity component for RootMotion)
 				const UPrimitiveComponent* HitComponent = Hit.GetComponent();
@@ -553,8 +590,22 @@ void UCollabMovementComponent::PhysFalling(float deltaTime, int32 Iterations)
 	}
 }
 
+void UCollabMovementComponent::CalcVelocity(float DeltaTime, float Friction, bool bFluid, float BrakingDeceleration)
+{
+	if (LastLandedTime.IsSet())
+	{
+		const FTimespan TimeSinceFall = FDateTime::Now() - LastLandedTime.GetValue();
+		const double TimeSinceFallSeconds = TimeSinceFall.GetTotalSeconds();
+		if (TimeSinceFallSeconds < LandingAccelerationGracePeriod)
+		{
+			Acceleration = FMath::Lerp(0.f, Acceleration, TimeSinceFallSeconds / LandingAccelerationGracePeriod);
+		}
+	}
+	Super::CalcVelocity(DeltaTime, Friction, bFluid, BrakingDeceleration);
+}
+
 FVector UCollabMovementComponent::ComputeSlideVector(const FVector& Delta, const float Time, const FVector& Normal,
-	const FHitResult& Hit) const
+                                                     const FHitResult& Hit) const
 {
 	// This is code straight from the inherited UMovementComponent, but we want to get around the logic in UCharacterMovementComponent which prevents sliding up slopes - CR
 	if (!bConstrainToPlane)
@@ -592,6 +643,21 @@ void UCollabMovementComponent::SetPostLandedPhysics(const FHitResult& Hit)
 	}
 
 	LastLandedTime = FDateTime::Now();
+}
+
+FVector UCollabMovementComponent::NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity,
+	float DeltaTime) const
+{
+	const FVector GravityDir = Gravity.GetSafeNormal();
+	// This value is positive when going downards because gravity Dir is typically <0, 0, -1>, so negatives cancel out
+	const float GravityVelocity = InitialVelocity | GravityDir;
+	if (GravityVelocity >= FMath::Abs(MaxGravityVelocity))
+	{
+		return InitialVelocity;
+	}
+
+	const FVector ReturnValue = Super::NewFallVelocity(InitialVelocity, Gravity, DeltaTime);
+	return ReturnValue;
 }
 
 void UCollabMovementComponent::OnJumpValuesUpdated()
@@ -632,6 +698,11 @@ void UCollabMovementComponent::Phys_Internal(float DeltaTime)
 	// Get Input from acceleration, because input is NOT accessible on server
 	// IMPORTANT: This must run before gravity / friction is applied to acceleration
 	FVector InputVector = Acceleration.GetSafeNormal();
+	if (InputVector.IsNearlyZero())
+	{
+		return;
+	}
+	
 	if (!ensureAlways(InputVector.Z == 0.f))
 	{
 		InputVector.Z = 0.f;
@@ -649,14 +720,24 @@ void UCollabMovementComponent::Phys_Internal(float DeltaTime)
     
 	// # Figure out which strafe force and speed limit applies
 	float StrafeAcceleration = GetMaxAcceleration();
-	float SpeedLimit = MovementMode == MOVE_Falling ? MaxAirSpeed : MaxWalkSpeed;
+	float SpeedLimit = GetCurrentMaxSpeed();
+
+	FVector TempVelocity = Velocity;
+	TempVelocity.Z = 0;
 	
 	// # Project current velocity onto the strafe direction, and compute a capped
 	// # acceleration such that *projected* speed will remain within the limit.
-	float CurrentSpeed = InputVector.Dot(Velocity);
+	float CurrentSpeed = InputVector.Dot(TempVelocity);
+	// float AdjustedSpeed = CurrentSpeed * DeltaTime;
 	float TempAcceleration = StrafeAcceleration * DeltaTime;
-	TempAcceleration = FMath::Max(0, FMath::Min(TempAcceleration, SpeedLimit - CurrentSpeed));
-	Velocity += InputVector * TempAcceleration;
+	const float NewAcceleration = FMath::Max(0, FMath::Min(TempAcceleration, SpeedLimit - CurrentSpeed));
+	InputAcceleration = NewAcceleration;
+	if (FMath::IsNearlyZero(InputAcceleration) && !InputVector.IsNearlyZero())
+	{
+		SpeedLimit = 0.f;
+	}
+	
+	Velocity += InputVector * NewAcceleration;
 }
 
 void UCollabMovementComponent::OnMovementSpeedChanged(const FOnAttributeChangeData& Data)
@@ -677,6 +758,11 @@ void UCollabMovementComponent::OnGroundFrictionChanged(const FOnAttributeChangeD
 void UCollabMovementComponent::OnAllowSlidingWhileMovingChanged(const FOnAttributeChangeData& Data)
 {
 	bAllowSlidingWhileMoving = Data.NewValue > 0.f;
+}
+
+void UCollabMovementComponent::OnLandingAccelerationGracePeriodChanged(const FOnAttributeChangeData& Data)
+{
+	LandingAccelerationGracePeriod = Data.NewValue;
 }
 
 void UCollabMovementComponent::OnLandingFrictionGracePeriodChanged(const FOnAttributeChangeData& Data)
@@ -729,5 +815,10 @@ void UCollabMovementComponent::OnAirControlBoostVelocityThresholdChanged(const F
 void UCollabMovementComponent::OnFallingLateralFrictionChanged(const FOnAttributeChangeData& Data)
 {
 	FallingLateralFriction = Data.NewValue;
+}
+
+void UCollabMovementComponent::OnMaxGravityVelocityChanged(const FOnAttributeChangeData& Data)
+{
+	MaxGravityVelocity = Data.NewValue;
 }
 

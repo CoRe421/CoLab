@@ -38,6 +38,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_AllowSlidingWhileMoving, meta=(AllowPrivateAccess))
 	FGameplayAttributeData bAllowSlidingWhileMoving;
 	ATTRIBUTE_ACCESSORS(UCollabMovementAttributeSet, bAllowSlidingWhileMoving)
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_LandingAccelerationGracePeriod, meta=(AllowPrivateAccess))
+	FGameplayAttributeData LandingAccelerationGracePeriod;
+	ATTRIBUTE_ACCESSORS(UCollabMovementAttributeSet, LandingAccelerationGracePeriod)
 	UPROPERTY(BlueprintReadOnly, Category = "Movement", ReplicatedUsing = OnRep_LandingFrictionGracePeriod, meta=(AllowPrivateAccess))
 	FGameplayAttributeData LandingFrictionGracePeriod;
 	ATTRIBUTE_ACCESSORS(UCollabMovementAttributeSet, LandingFrictionGracePeriod)
@@ -68,6 +71,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement|Air", ReplicatedUsing = OnRep_FallingLateralFriction, meta=(AllowPrivateAccess))
 	FGameplayAttributeData FallingLateralFriction;
 	ATTRIBUTE_ACCESSORS(UCollabMovementAttributeSet, FallingLateralFriction)
+	UPROPERTY(BlueprintReadOnly, Category = "Movement|Air", ReplicatedUsing = OnRep_MaxGravityVelocity, meta=(AllowPrivateAccess))
+	FGameplayAttributeData MaxGravityVelocity;
+	ATTRIBUTE_ACCESSORS(UCollabMovementAttributeSet, MaxGravityVelocity)
 
 	UCollabMovementAttributeSet();
 
@@ -81,6 +87,8 @@ public:
 	virtual void OnRep_GroundFriction(const FGameplayAttributeData& OldGroundFriction);
 	UFUNCTION()
 	virtual void OnRep_AllowSlidingWhileMoving(const FGameplayAttributeData& OldAllowSlidingWhileMoving);
+	UFUNCTION()
+	virtual void OnRep_LandingAccelerationGracePeriod(const FGameplayAttributeData& OldLandingAccelerationGracePeriod);
 	UFUNCTION()
 	virtual void OnRep_LandingFrictionGracePeriod(const FGameplayAttributeData& OldLandingFrictionGracePeriod);
 	UFUNCTION()
@@ -96,11 +104,13 @@ public:
 	UFUNCTION()
 	virtual void OnRep_AirAcceleration(const FGameplayAttributeData& OldAirAcceleration);
 	UFUNCTION()
-	virtual void OnRep_FallingLateralFriction(const FGameplayAttributeData& OldFallingLateralFriction);
-	UFUNCTION()
 	virtual void OnRep_AirControlBoostMultiplier(const FGameplayAttributeData& OldAirControlBoostMultiplier);
 	UFUNCTION()
 	virtual void OnRep_AirControlBoostVelocityThreshold(const FGameplayAttributeData& OldAirControlBoostVelocityThreshold);
+	UFUNCTION()
+	virtual void OnRep_FallingLateralFriction(const FGameplayAttributeData& OldFallingLateralFriction);
+	UFUNCTION()
+	virtual void OnRep_MaxGravityVelocity(const FGameplayAttributeData& OldMaxGravityVelocity);
 
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 };

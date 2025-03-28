@@ -11,6 +11,7 @@ UCollabMovementAttributeSet::UCollabMovementAttributeSet()
 	Acceleration = 2048.f;
 	GroundFriction = 8.f;
 	bAllowSlidingWhileMoving = false;
+	LandingAccelerationGracePeriod = 1.f;
 	LandingFrictionGracePeriod = 0.1f;
 	JumpHeight = 150.f;
 	Mass = 300.f;
@@ -21,6 +22,7 @@ UCollabMovementAttributeSet::UCollabMovementAttributeSet()
 	AirControlBoostMultiplier = 0.f;
 	AirControlBoostVelocityThreshold = 0.f;
 	FallingLateralFriction = 0.f;
+	MaxGravityVelocity = 3000.f;
 }
 
 void UCollabMovementAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -31,6 +33,7 @@ void UCollabMovementAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimePro
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, Acceleration, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, GroundFriction, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, bAllowSlidingWhileMoving, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, LandingAccelerationGracePeriod, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, LandingFrictionGracePeriod, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, JumpHeight, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UCollabMovementAttributeSet, Mass, COND_None, REPNOTIFY_Always);
@@ -66,6 +69,13 @@ void UCollabMovementAttributeSet::OnRep_AllowSlidingWhileMoving(
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabMovementAttributeSet, bAllowSlidingWhileMoving, OldAllowSlidingWhileMoving);
 	COLLABATTRIBUTE_REPNOTIFY(GetbAllowSlidingWhileMovingAttribute(), OldAllowSlidingWhileMoving.GetCurrentValue(), GetbAllowSlidingWhileMoving());
+}
+
+void UCollabMovementAttributeSet::OnRep_LandingAccelerationGracePeriod(
+	const FGameplayAttributeData& OldLandingAccelerationGracePeriod)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabMovementAttributeSet, LandingAccelerationGracePeriod, OldLandingAccelerationGracePeriod);
+	COLLABATTRIBUTE_REPNOTIFY(GetLandingAccelerationGracePeriodAttribute(), OldLandingAccelerationGracePeriod.GetCurrentValue(), GetLandingAccelerationGracePeriod());
 }
 
 void UCollabMovementAttributeSet::OnRep_LandingFrictionGracePeriod(
@@ -129,6 +139,12 @@ void UCollabMovementAttributeSet::OnRep_FallingLateralFriction(const FGameplayAt
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabMovementAttributeSet, FallingLateralFriction, OldFallingLateralFriction);
 	COLLABATTRIBUTE_REPNOTIFY(GetFallingLateralFrictionAttribute(), OldFallingLateralFriction.GetCurrentValue(), GetFallingLateralFriction());
+}
+
+void UCollabMovementAttributeSet::OnRep_MaxGravityVelocity(const FGameplayAttributeData& OldMaxGravityVelocity)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UCollabMovementAttributeSet, MaxGravityVelocity, OldMaxGravityVelocity);
+	COLLABATTRIBUTE_REPNOTIFY(GetMaxGravityVelocityAttribute(), OldMaxGravityVelocity.GetCurrentValue(), GetMaxGravityVelocity());
 }
 
 

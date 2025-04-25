@@ -703,7 +703,7 @@ void UCollabMovementComponent::Phys_Internal(float DeltaTime)
 		return;
 	}
 	
-	if (!ensureAlways(InputVector.Z == 0.f))
+	if (!ensureAlways(FMath::IsNearlyZero(InputVector.Z)))
 	{
 		InputVector.Z = 0.f;
 	}

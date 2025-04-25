@@ -40,7 +40,8 @@ public class Collab : ModuleRules
 				"Slate",
 				"SlateCore",
 				"GameplayTags",
-				"GameplayTasks"
+				"GameplayTasks", 
+				"Chaos"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

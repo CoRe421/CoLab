@@ -8,6 +8,7 @@ namespace CollabGameplayTags
 	COLLAB_API	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString = false);
 	
 	COLLAB_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Behavior_SurvivesDeath);
+	COLLAB_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Data_Cooldown);
 	
 	// Used as the trigger for the Death GameplayAbility
 	COLLAB_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(GameplayEvent_Death);

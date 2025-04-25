@@ -638,8 +638,12 @@ bool UCollabRuntimeConfigSubsystem::TryGetPropertyDataFromProperty(const FProper
 	}
 		
 	PropertyData.PropertyName = Property->GetFName();
+
+#if WITH_EDITOR
+	// This is only available in-editor, don't rely on this property info - CR
 	const TMap<FName, FString> PropertyMetaData = *Property->GetMetaDataMap();
 	PropertyData.MetaData = PropertyMetaData;
+#endif
 
 	TOptional<ECollabModifiablePropertyType> FoundType;
 	const uint64 CastFlags = Property->GetCastFlags();

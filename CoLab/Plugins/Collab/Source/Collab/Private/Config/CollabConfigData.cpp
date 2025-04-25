@@ -6,6 +6,7 @@
 #define STRING(s) #s
 UCollabConfigData::UCollabConfigData()
 {
+#if WITH_EDITOR
 	// This doesn't actually work at runtime, just a stupid party trick for auto adding categories to cpp properties - CR
 	for (TFieldIterator<FProperty> PropIt(UCollabConfigData::StaticClass()); PropIt; ++PropIt)
 	{
@@ -24,6 +25,7 @@ UCollabConfigData::UCollabConfigData()
 
 		Property->SetMetaData(TEXT("Category"), *MetaSpecifier);
 	}
+#endif
 }
 #undef STRING
 

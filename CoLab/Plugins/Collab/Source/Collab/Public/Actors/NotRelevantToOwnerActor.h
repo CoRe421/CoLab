@@ -3,11 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CollabActor.h"
 #include "GameFramework/Actor.h"
 #include "NotRelevantToOwnerActor.generated.h"
 
 UCLASS()
-class COLLAB_API ANotRelevantToOwnerActor : public AActor
+class COLLAB_API ANotRelevantToOwnerActor : public ACollabActor
 {
 	GENERATED_BODY()
 

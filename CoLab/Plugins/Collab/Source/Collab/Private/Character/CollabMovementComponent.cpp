@@ -648,12 +648,15 @@ void UCollabMovementComponent::SetPostLandedPhysics(const FHitResult& Hit)
 FVector UCollabMovementComponent::NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity,
 	float DeltaTime) const
 {
-	const FVector GravityDir = Gravity.GetSafeNormal();
-	// This value is positive when going downards because gravity Dir is typically <0, 0, -1>, so negatives cancel out
-	const float GravityVelocity = InitialVelocity | GravityDir;
-	if (GravityVelocity >= FMath::Abs(MaxGravityVelocity))
+	if (MaxGravityVelocity >= 0)
 	{
-		return InitialVelocity;
+		const FVector GravityDir = Gravity.GetSafeNormal();
+		// This value is positive when going downards because gravity Dir is typically <0, 0, -1>, so negatives cancel out
+		const float GravityVelocity = InitialVelocity | GravityDir;
+		if (GravityVelocity >= FMath::Abs(MaxGravityVelocity))
+		{
+			return InitialVelocity;
+		}
 	}
 
 	const FVector ReturnValue = Super::NewFallVelocity(InitialVelocity, Gravity, DeltaTime);

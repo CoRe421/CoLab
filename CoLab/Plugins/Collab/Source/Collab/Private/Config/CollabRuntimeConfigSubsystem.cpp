@@ -88,16 +88,19 @@ void UCollabRuntimeConfigSubsystem::OnWorldBeginTeardown(UWorld* World)
 
 	if (!ensureAlways(TempConfigData.IsEmpty()))
 	{
-		TempConfigData.Reset(ConfigManagerConfigs.Num());
+		UE_LOG(LogCollab, Warning, TEXT("TempConfigData non-empty on world-transition!"))
 	}
-	else
-	{
-		TempConfigData.SetNumZeroed(ConfigManagerConfigs.Num());
-	}
+	
+	TempConfigData.Reset(ConfigManagerConfigs.Num());
 				
 	// We're commandeering the configs from the manager so we can store them in the next manager - CR
 	for (const TObjectPtr<UCollabConfigData>& Config : ConfigManagerConfigs)
 	{
+		if (!IsValid(Config))
+		{
+			continue;
+		}
+		
 		const FName CurrentName = Config->GetFName();
 		Config->Rename(*CurrentName.ToString(), this);
 
@@ -281,7 +284,7 @@ void UCollabRuntimeConfigSubsystem::SetConfigPropertyData(UCollabConfigData* Con
 
 	for (const FCollabModifiablePropertyData& NewPropertyData : PropertyData)
 	{
-		FProperty* FoundProperty = ConfigDataClass->FindPropertyByName(NewPropertyData.PropertyName);
+		const FProperty* FoundProperty = ConfigDataClass->FindPropertyByName(NewPropertyData.PropertyName);
 		if (!ensure(FoundProperty))
 		{
 			continue;
@@ -326,6 +329,9 @@ void UCollabRuntimeConfigSubsystem::SetConfigPropertyData(UCollabConfigData* Con
 				continue;
 			} break;
 		}
+
+		const FName FoundPropertyName = FoundProperty->GetFName();
+		ConfigData->OnConfigPropertyChanged.Broadcast(FoundPropertyName);
 	}
 
 	// CachedConfigManager->ForceNetUpdate();

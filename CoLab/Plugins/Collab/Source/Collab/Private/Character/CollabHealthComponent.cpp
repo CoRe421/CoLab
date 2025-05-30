@@ -223,6 +223,7 @@ void UCollabHealthComponent::HandleOutOfHealth(AActor* DamageInstigator, AActor*
 #endif // #if WITH_SERVER_CODE
 }
 
+// THIS ONLY FIRES ON SERVER because damage is only on the server
 void UCollabHealthComponent::BroadcastDamaged(const AActor* DamageInstigator, const AActor* DamageCauser,
 	const FGameplayEffectSpec* DamageEffectSpec, float DamageMagnitude)
 {
@@ -242,6 +243,8 @@ void UCollabHealthComponent::BroadcastDamaged(const AActor* DamageInstigator, co
 	{
 		return;
 	}
+
+	OnDamaged.Broadcast(DamageMagnitude);
 
 	const TMap<FGameplayTag, TSoftClassPtr<UCollabGameplayEffect>>& GlobalTagEffects = GameData->GetGlobalTagEffects();
 	

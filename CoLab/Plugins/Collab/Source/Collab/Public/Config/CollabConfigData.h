@@ -6,9 +6,11 @@
 #include "Engine/DataAsset.h"
 #include "CollabConfigData.generated.h"
 
-#ifdef ALLOW_METADATA_MACRO
-	#define META_PROPERTY AddMetaProperty
-#endif
+// #ifdef ALLOW_METADATA_MACRO
+// 	#define META_PROPERTY AddMetaProperty
+// #endif
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDynamicEvent_OnPropertyChanged, const FName, PropertyName);
 
 /**
  * 
@@ -17,6 +19,9 @@ UCLASS(Blueprintable, Abstract)
 class COLLAB_API UCollabConfigData : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, BlueprintAssignable)
+	FDynamicEvent_OnPropertyChanged OnConfigPropertyChanged;
 
 public:
 	// Properties whose names END with the meta specifier, START with the name of another property, and ARE NOT
@@ -26,12 +31,12 @@ public:
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(META_PROPERTY))
 	FText DisplayName;
-	
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
-	float FloatTruncTest;
-	
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
-	double DoubleTruncTest;
+// 	
+// 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
+// 	float FloatTruncTest;
+// 	
+// 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly)
+// 	double DoubleTruncTest;
 
 public:
 	UCollabConfigData();
@@ -40,4 +45,8 @@ protected:
 	virtual bool IsSupportedForNetworking() const override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
 };

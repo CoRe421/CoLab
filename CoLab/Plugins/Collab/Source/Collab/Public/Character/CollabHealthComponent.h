@@ -12,6 +12,8 @@ struct FGameplayEffectSpec;
 class UCollabHealthAttributeSet;
 class UCollabAbilitySystemComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDynamicEvent_OnDamaged, const float, Damage);
+
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class COLLAB_API UCollabHealthComponent : public UGameFrameworkComponent
@@ -27,6 +29,9 @@ protected:
 	// Health set used by this component.
 	UPROPERTY()
 	TWeakObjectPtr<const UCollabHealthAttributeSet> HealthSet;
+
+	UPROPERTY(BlueprintReadWrite, BlueprintAssignable, EditAnywhere, meta=(AllowPrivateAccess))
+	FDynamicEvent_OnDamaged OnDamaged;
 
 public:
 

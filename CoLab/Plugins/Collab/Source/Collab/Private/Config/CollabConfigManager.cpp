@@ -85,12 +85,10 @@ void ACollabConfigManager::InitializeConfigData(const TArray<TObjectPtr<UCollabC
 
 	if (!ensureAlways(ConstructedConfigs.IsEmpty()))
 	{
-		ConstructedConfigs.Reset(ConfigData.Num());
+		UE_LOG(LogCollab, Warning, TEXT("ConstructedConfigs non-empty on initialization!"))
 	}
-	else
-	{
-		ConstructedConfigs.SetNumZeroed(ConfigData.Num());
-	}
+	
+	ConstructedConfigs.Reset(ConfigData.Num());
 	
 	for (const TObjectPtr<UCollabConfigData>& InConfigData : ConfigData)
 	{

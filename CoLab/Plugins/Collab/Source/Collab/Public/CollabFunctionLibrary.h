@@ -37,4 +37,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	static UPARAM(DisplayName="Filtered Array") TArray<UObject*> FilterArray(const TArray<UObject*>& Array, const FDynamicCallback_FilterDelegate& FilterDelegate);
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure, meta=(WorldContext="WorldContext"))
+	static UPARAM(DisplayName="bIsPIE") bool IsPlayingInEditor(UObject* WorldContext);
 };

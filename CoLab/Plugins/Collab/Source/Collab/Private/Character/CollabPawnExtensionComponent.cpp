@@ -239,7 +239,7 @@ void UCollabPawnExtensionComponent::InitializeAbilitySystem(UCollabAbilitySystem
 	}
 
 	if (HasAuthority())
-	{
+	{		
 		if (IsValid(PawnData))
 		{
 			for (const FCollabAbilitySet_GameplayEffect& SpawnEffect : PawnData->SpawnEffects)

@@ -33,12 +33,20 @@ UObject* UCollabFunctionLibrary::ConstructObjectFromClassWithTemplate(UObject* O
 
 bool UCollabFunctionLibrary::IsActorOnClient(const AActor* Actor)
 {
+	if (!IsValid(Actor))
+	{
+		return false;
+	}
 	const bool bIsOnClient = Actor->IsNetMode(NM_Client);
 	return bIsOnClient;
 }
 
 bool UCollabFunctionLibrary::IsActorOnServer(const AActor* Actor)
 {
+	if (!IsValid(Actor))
+	{
+		return false;
+	}
 	const bool bIsOnClient = IsActorOnClient(Actor);
 	const bool bHasAuthority = Actor->HasAuthority();
 	return bHasAuthority && !bIsOnClient;
@@ -70,4 +78,25 @@ TArray<UObject*> UCollabFunctionLibrary::FilterArray(const TArray<UObject*>& Arr
 	}
 
 	return NewArray;
+}
+
+bool UCollabFunctionLibrary::IsPlayingInEditor(UObject* WorldContext)
+{
+#if WITH_EDITOR
+	if (!IsValid(WorldContext))
+	{
+		return false;
+	}
+
+	UWorld* World = WorldContext->GetWorld();
+	if (!IsValid(World))
+	{
+		return false;
+	}
+
+	const bool bIsPIE = World->IsPlayInEditor();
+	return bIsPIE;
+#else
+	return false;
+#endif
 }

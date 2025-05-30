@@ -28,6 +28,7 @@ class COLLAB_API UCollabHealthAttributeSet : public UCollabAttributeSet
 public:
 	UPROPERTY(BlueprintAssignable, BlueprintReadOnly, DisplayName="OnOutOfHealth")
 	mutable FDynamicEvent_OnOutOfHealth BP_OnOutOfHealth;
+	
 	mutable FNativeEvent_CollabAttributeEvent OnOutOfHealth;
 
 private:

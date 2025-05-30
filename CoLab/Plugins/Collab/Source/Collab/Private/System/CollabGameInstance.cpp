@@ -5,6 +5,7 @@
 
 #include "CollabGameplayTags.h"
 #include "Components/GameFrameworkComponentManager.h"
+#include "GameFramework/GameUserSettings.h"
 
 void UCollabGameInstance::Init()
 {
@@ -19,5 +20,15 @@ void UCollabGameInstance::Init()
 		ComponentManager->RegisterInitState(CollabGameplayTags::InitState_DataAvailable, false, CollabGameplayTags::InitState_Spawned);
 		ComponentManager->RegisterInitState(CollabGameplayTags::InitState_DataInitialized, false, CollabGameplayTags::InitState_DataAvailable);
 		ComponentManager->RegisterInitState(CollabGameplayTags::InitState_GameplayReady, false, CollabGameplayTags::InitState_DataInitialized);
+	}
+
+	if (ensureAlways(GEngine))
+	{
+		UGameUserSettings* Settings = GEngine->GetGameUserSettings();
+		if (ensureAlways(IsValid(Settings)))
+		{
+			Settings->SetFrameRateLimit(90.0f);
+			Settings->ApplySettings(false); // false = don't restart
+		}
 	}
 }

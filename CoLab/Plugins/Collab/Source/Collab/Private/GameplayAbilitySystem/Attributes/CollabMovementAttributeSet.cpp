@@ -22,7 +22,7 @@ UCollabMovementAttributeSet::UCollabMovementAttributeSet()
 	AirControlBoostMultiplier = 0.f;
 	AirControlBoostVelocityThreshold = 0.f;
 	FallingLateralFriction = 0.f;
-	MaxGravityVelocity = 3000.f;
+	MaxGravityVelocity = -1.f;
 }
 
 void UCollabMovementAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

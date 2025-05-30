@@ -15,9 +15,21 @@ class COLLAB_API UCollabSettings : public UDeveloperSettings
 	GENERATED_BODY()
 
 private:
+	UCollabSettings();
+
+private:
 	UPROPERTY(Config, EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess), Category="Collab|Startup")
 	TSoftObjectPtr<class UWorld> MenuMap;
 	
 	UPROPERTY(Config, EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess), Category="Collab|Global")
 	TSet<TSoftObjectPtr<class UCollabGameData>> RegisteredGameData;
+	
+	UPROPERTY(Config, EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess), Category="Collab|Global")
+	float GlobalFrameRateLimit;
+
+public:
+	UFUNCTION(BlueprintCallable)
+	float GetGlobalFrameRateLimit();
+	UFUNCTION(BlueprintCallable)
+	void SetGlobalFrameRateLimit(const float FrameRateLimit);
 };

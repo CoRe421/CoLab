@@ -13,6 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDynamicEvent_OnOutOfHealth);
 
 namespace CollabHealthGameplayTags
 {
+	COLLAB_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gameplay_State_DamageImmune);
 	COLLAB_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gameplay_State_Damaged);
 	COLLAB_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Gameplay_Event_DealtDamage);
 }
@@ -56,8 +57,11 @@ public:
 	UFUNCTION()
 	virtual void OnRep_Health(const FGameplayAttributeData& OldHealth);
 
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
 protected:
 	virtual void ClampAttributes(const FGameplayAttribute& Attribute, float& NewValue) const override;
+
+	virtual bool CanBeDamaged();
 };

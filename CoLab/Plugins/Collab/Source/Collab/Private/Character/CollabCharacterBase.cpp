@@ -71,7 +71,9 @@ void ACollabCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 UCollabAbilitySystemComponent* ACollabCharacterBase::GetCollabAbilitySystemComponent() const
 {
-	return Cast<UCollabAbilitySystemComponent>(GetAbilitySystemComponent());
+	UAbilitySystemComponent* FoundASC = GetAbilitySystemComponent();
+	UCollabAbilitySystemComponent* CollabASC = Cast<UCollabAbilitySystemComponent>(FoundASC);
+	return CollabASC;
 }
 
 UAbilitySystemComponent* ACollabCharacterBase::GetAbilitySystemComponent() const
@@ -81,7 +83,8 @@ UAbilitySystemComponent* ACollabCharacterBase::GetAbilitySystemComponent() const
 		return nullptr;
 	}
 
-	return PawnExtensionComponent->GetCollabAbilitySystemComponent();
+	UAbilitySystemComponent* FoundASC = PawnExtensionComponent->GetCollabAbilitySystemComponent();
+	return FoundASC;
 }
 
 void ACollabCharacterBase::BeginDestroyCharacter(const bool bDeffered /*= false*/)

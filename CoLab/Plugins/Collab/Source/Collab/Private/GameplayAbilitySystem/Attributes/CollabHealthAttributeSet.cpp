@@ -9,6 +9,7 @@
 
 namespace CollabHealthGameplayTags
 {
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Gameplay_State_DamageImmune, "Gameplay.State.DamageImmune", "Target cannot take damage.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Gameplay_State_Damaged, "Gameplay.State.Damaged", "Target has recently taken damage.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Gameplay_Event_DealtDamage, "Gameplay.Event.DealtDamage", "Target has been dealt damage.");
 }
@@ -48,6 +49,20 @@ void UCollabHealthAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHe
 	bOutOfHealth = (CurrentHealthValue <= 0.0f);
 }
 
+void UCollabHealthAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+{
+	if (Attribute == GetDamageAttribute())
+	{
+		const bool bCanBeDamaged = CanBeDamaged();
+		if (!bCanBeDamaged)
+		{
+			const float CurrentDamage = GetDamage();
+			NewValue = CurrentDamage;
+		}
+	}
+	Super::PreAttributeChange(Attribute, NewValue);
+}
+
 void UCollabHealthAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
@@ -67,8 +82,13 @@ void UCollabHealthAttributeSet::PostGameplayEffectExecute(const FGameplayEffectM
 
 		if (LocalDamageDone > 0.0f)
 		{
-			const float ModifiedHealth = OldHealth - LocalDamageDone;
-			SetHealth(FMath::Clamp(ModifiedHealth, 0.0f, CurrentMaxHealth));
+			const bool bCanBeDamaged = CanBeDamaged();
+			// Should always be able to be damaged here, damage shouldn't be added to attribute if not - CR
+			if (ensure(bCanBeDamaged))
+			{
+				const float ModifiedHealth = OldHealth - LocalDamageDone;
+				SetHealth(FMath::Clamp(ModifiedHealth, 0.0f, CurrentMaxHealth));
+			}
 		}
 	}
 	
@@ -103,4 +123,16 @@ void UCollabHealthAttributeSet::ClampAttributes(const FGameplayAttribute& Attrib
 		NewValue = FMath::Max(NewValue, 1.f);
 		return;
 	}
+}
+
+bool UCollabHealthAttributeSet::CanBeDamaged()
+{
+	const UAbilitySystemComponent* OwningASC = GetOwningAbilitySystemComponent();
+	if (!ensureAlways(IsValid(OwningASC)))
+	{
+		return false;
+	}
+
+	const int32 ImmuneTagCount = OwningASC->GetGameplayTagCount(CollabHealthGameplayTags::Gameplay_State_DamageImmune);
+	return ImmuneTagCount <= 0;
 }

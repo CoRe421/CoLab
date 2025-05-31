@@ -47,6 +47,7 @@ protected:
 	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
 	virtual void InitGameState() override;
 	virtual void AddInactivePlayer(APlayerState* PlayerState, APlayerController* PC) override;
+	virtual bool ShouldSpawnAtStartSpot(AController* Player) override;
 	//~End AGameModeBase interface
 
 	//~Begin AGameMode interface

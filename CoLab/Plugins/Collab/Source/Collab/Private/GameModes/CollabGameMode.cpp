@@ -149,6 +149,14 @@ void ACollabGameMode::AddInactivePlayer(APlayerState* PlayerState, APlayerContro
 	// Super::AddInactivePlayer(PlayerState, PC);
 }
 
+bool ACollabGameMode::ShouldSpawnAtStartSpot(AController* Player)
+{
+	// return Super::ShouldSpawnAtStartSpot(Player);
+
+	// We always want to choose new player starts for spawning players - CR
+	return false;
+}
+
 bool ACollabGameMode::PlayerCanRestart_Implementation(APlayerController* Player)
 {
 	const bool bCanRestart = Super::PlayerCanRestart_Implementation(Player);

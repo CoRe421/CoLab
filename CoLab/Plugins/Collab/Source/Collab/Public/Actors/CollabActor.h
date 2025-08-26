@@ -32,6 +32,25 @@ protected:
 
 	virtual bool IsNetRelevantFor(const AActor* RealViewer, const AActor* ViewTarget, const FVector& SrcLocation) const override;
 
+	virtual void OnConstruction(const FTransform& Transform) override;
+
+#if WITH_EDITOR
+	virtual void RerunConstructionScripts() override;
+	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+	virtual void PostEditMove(bool bFinished) override;
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void OnPostPropertyChanged(const FName Property);
+	virtual void OnPostPropertyChanged_Implementation(const FName Property);
+#endif
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void OnPostConstruction();
+	virtual void OnPostConstruction_Implementation();
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void OnPostActorUpdate();
+	virtual void OnPostActorUpdate_Implementation() {};
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

@@ -30,6 +30,16 @@ public class Collab : ModuleRules
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
+
+		if (Target.bBuildEditor)
+		{
+			PublicDependencyModuleNames.AddRange(
+				new string[]
+				{
+					"UnrealEd"
+				}
+			);
+		}
 			
 		
 		PrivateDependencyModuleNames.AddRange(

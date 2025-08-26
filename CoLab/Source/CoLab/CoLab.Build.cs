@@ -9,6 +9,14 @@ public class CoLab : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] { "Collab" });
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			"Core", 
+			"CoreUObject", 
+			"Engine", 
+			"InputCore", 
+			"EnhancedInput",
+			"DeveloperSettings"
+		});
 	}
 }

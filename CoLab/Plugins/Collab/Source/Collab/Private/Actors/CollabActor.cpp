@@ -47,6 +47,51 @@ bool ACollabActor::IsNetRelevantFor(const AActor* RealViewer, const AActor* View
 	return DistanceFromActor <= NetRelevancyDistance;
 }
 
+void ACollabActor::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	// OnPostConstruction();
+}
+
+#if WITH_EDITOR
+void ACollabActor::RerunConstructionScripts()
+{
+	Super::RerunConstructionScripts();
+
+	FEditorScriptExecutionGuard Guard;
+	OnPostConstruction();
+}
+
+void ACollabActor::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	FEditorScriptExecutionGuard Guard;
+	OnPostPropertyChanged(PropertyChangedEvent.GetPropertyName());
+}
+
+void ACollabActor::PostEditMove(bool bFinished)
+{
+	Super::PostEditMove(bFinished);
+	
+	FEditorScriptExecutionGuard Guard;
+	OnPostActorUpdate();
+}
+
+void ACollabActor::OnPostPropertyChanged_Implementation(const FName Property)
+{
+	FEditorScriptExecutionGuard Guard;
+	OnPostActorUpdate();
+}
+#endif
+
+void ACollabActor::OnPostConstruction_Implementation()
+{
+	FEditorScriptExecutionGuard Guard;
+	OnPostActorUpdate();
+}
+
 // Called every frame
 void ACollabActor::Tick(float DeltaTime)
 {

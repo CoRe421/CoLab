@@ -24,6 +24,13 @@ void UCollabStaticMeshComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProp
 	DOREPLIFETIME(UCollabStaticMeshComponent, MaxDrawDistance);
 }
 
+void UCollabStaticMeshComponent::OnRegister()
+{
+	Super::OnRegister();
+
+	OnComponentConstruction();
+}
+
 void UCollabStaticMeshComponent::BeginPlay()
 {
 	Super::BeginPlay();

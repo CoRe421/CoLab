@@ -6,6 +6,10 @@
 
 #include "AbilitySystemComponent.h"
 
+#if WITH_EDITORONLY_DATA
+#include "Subsystems/UnrealEditorSubsystem.h"
+#endif
+
 const UCollabAttributeSet* UCollabFunctionLibrary::GetCollabAttributeSet(
 	const UAbilitySystemComponent* AbilitySystemComponent,
 	const TSubclassOf<UCollabAttributeSet> AttributeSet)
@@ -99,4 +103,93 @@ bool UCollabFunctionLibrary::IsPlayingInEditor(UObject* WorldContext)
 #else
 	return false;
 #endif
+}
+
+TArray<AActor*> UCollabFunctionLibrary::GetAllAttachedActors(AActor* Actor)
+{
+	if (!IsValid(Actor))
+	{
+		return {};
+	}
+	TArray<AActor*> AttachedActors;
+	Actor->ForEachAttachedActors([&AttachedActors](AActor* AttachedActor)
+	{
+		AttachedActors.Emplace(AttachedActor);
+		return true;
+	});
+	
+	return AttachedActors;
+}
+
+void UCollabFunctionLibrary::DrawPersistentDebugBox(const UObject* WorldContextObject, const FVector Center,
+	const FVector Extent, const FRotator Rotation, const FLinearColor Color, const float Thickness)
+{
+#if ENABLE_DRAW_DEBUG && WITH_EDITOR
+	if (UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		if (Rotation == FRotator::ZeroRotator)
+		{
+			::DrawDebugBox(World, Center, Extent, Color.ToFColor(true), true, 0.0, SDPG_World, Thickness);
+		}
+		else
+		{
+			::DrawDebugBox(World, Center, Extent, Rotation.Quaternion(), Color.ToFColor(true), true, 0.0, SDPG_World, Thickness);
+		}
+	}
+#endif
+}
+
+void UCollabFunctionLibrary::TryGetEditorCameraTransform(FTransform& OutTransform)
+{
+#if WITH_EDITOR
+	UUnrealEditorSubsystem* EditorSubsystem = GEditor->GetEditorSubsystem<UUnrealEditorSubsystem>();
+	if (!IsValid(EditorSubsystem))
+	{
+		return;
+	}
+
+	FVector CameraLocation;
+	FRotator CameraRotation;
+	EditorSubsystem->GetLevelViewportCameraInfo(CameraLocation, CameraRotation);
+	OutTransform = FTransform(CameraRotation, CameraLocation);
+#endif
+}
+
+UActorComponent* UCollabFunctionLibrary::TryAddAndRegisterComponentToActor(AActor* Actor,
+	TSubclassOf<UActorComponent> Component, const FTransform SpawnTransform)
+{
+	if (!IsValid(Actor) || !IsValid(Component))
+	{
+		return nullptr;
+	}
+	
+	UActorComponent* NewComp = NewObject<UActorComponent>(Actor, Component);
+	USceneComponent* NewSceneComponent = Cast<USceneComponent>(NewComp);
+	USceneComponent* RootComponent = Actor->GetRootComponent();
+	const FTransform RootTransform = RootComponent->GetComponentTransform();
+
+#if WITH_EDITOR
+	if (!GEditor->IsPlayingSessionInEditor())
+	{
+		Actor->Modify(); // marks actor dirty for editor
+	}
+#endif
+
+	if (IsValid(NewSceneComponent))
+	{
+		NewSceneComponent->SetupAttachment(RootComponent);
+		NewSceneComponent->SetWorldTransform(SpawnTransform);
+	}
+	NewComp->RegisterComponent();
+	Actor->AddInstanceComponent(NewComp);
+
+#if WITH_EDITOR
+	if (!GEditor->IsPlayingSessionInEditor())
+	{
+		Actor->Modify(); // marks actor dirty for editor
+	}
+#endif
+
+	RootComponent->SetWorldTransform(RootTransform);
+	return NewComp;
 }

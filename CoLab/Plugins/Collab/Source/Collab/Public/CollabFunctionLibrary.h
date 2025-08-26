@@ -40,4 +40,16 @@ public:
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, meta=(WorldContext="WorldContext"))
 	static UPARAM(DisplayName="bIsPIE") bool IsPlayingInEditor(UObject* WorldContext);
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure=TEXT_FALSE, meta=(DefaultToSelf="Actor"))
+	static TArray<AActor*> GetAllAttachedActors(AActor* Actor);
+
+	UFUNCTION(BlueprintCallable, meta=(WorldContext="WorldContextObject", DevelopmentOnly))
+	static void DrawPersistentDebugBox(const UObject* WorldContextObject, const FVector Center, const FVector Extent, const FRotator Rotation, const FLinearColor Color, const float Thickness);
+
+	UFUNCTION(BlueprintCallable, meta=(Development))
+	static void TryGetEditorCameraTransform(FTransform& OutTransform);
+
+	UFUNCTION(BlueprintCallable, meta=(DeterminesOutputType=Component, DefaultToSelf="Actor"))
+	static UActorComponent* TryAddAndRegisterComponentToActor(AActor* Actor, TSubclassOf<UActorComponent> Component, const FTransform SpawnTransform);
 };

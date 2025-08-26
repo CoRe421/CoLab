@@ -18,6 +18,11 @@
 			"Name": "Collab",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "CollabEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
 		}
 	]
 }

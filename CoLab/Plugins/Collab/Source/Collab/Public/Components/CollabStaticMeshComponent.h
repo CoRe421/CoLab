@@ -40,12 +40,19 @@ public:
 	UPROPERTY(BlueprintReadWrite, BlueprintAssignable)
 	FDynamicEvent_OnComponentTick OnComponentTick;
 
+public:
+	UFUNCTION(BlueprintNativeEvent)
+	void OnComponentConstruction();
+	void OnComponentConstruction_Implementation() {};
+
 protected:
 	UCollabStaticMeshComponent();
 
 	// virtual void AsyncPhysicsTickComponent(float DeltaTime, float SimTime) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	virtual void OnRegister() override;
 
 	virtual void BeginPlay() override;
 	
